@@ -1,7 +1,9 @@
 provider "aws" {
   region = var.aws_region
 }
-
+##################################################
+# Networking Modules
+##################################################
 # ------------------------
 # VPC Module
 # ------------------------
@@ -22,13 +24,23 @@ module "subnets" {
   app_private_subnet_cidrs  = var.app_private_subnet_cidrs
   db_private_subnet_cidrs   = var.db_private_subnet_cidrs
 }
+# ------------------------
+# Internet Gateway
+# ------------------------
+module "internet_gateway" {
+  source = "../../modules/networking/internet-gateway"
+  vpc_id = module.vpc.vpc_id
+  environment_name = var.environment
+  tags            = var.common_tags
 
-# ------------------------
+}
+#####################################################
+# Logging Modules
 # Flow Logs Module
-# ------------------------
-# ----------
+#####################################################
+# -----------
 # VPC Module
-# ----------
+# -----------
 module "flow_logs" {
   source           = "../../modules/logging/flow-logs"
   vpc_ids          = [module.vpc.vpc_id]
