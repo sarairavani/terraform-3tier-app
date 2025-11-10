@@ -53,22 +53,58 @@ module "nat_gateway" {
   public_subnet_map = {
     "az1" = {
       public_subnet_id  = module.subnets.public_subnet_ids["az1"]
-      az                = "ca-central-1a"
+      az                = var.availability_zones
       environment_name  = var.environment
     }
     "az2" = {
       public_subnet_id  = module.subnets.public_subnet_ids["az2"]
-      az                = "ca-central-1b"
+      az                = var.availability_zones
       environment_name  = var.environment
     }
   }
 
-  common_tags = {
-    Project     = "terraform-3tier-app"
-    Environment = "dev"
-    Region      = "ca-central-1"
+  common_tags = var.common_tags
+# ----------------------
+# Route Tables
+# ----------------------
+module "route_tables" {
+  source = "../../modules/networking/route-tables"
+
+  public_subnet_map = {
+    "az1" = {
+      subnet_id        = module.subnets.web_public_subnet_ids[0]
+      vpc_id           = module.vpc.vpc_id
+      az               = var.availability_zones
+      environment_name = var.environment
+    }
+    "az2" = {
+      subnet_id        = module.subnets.web_public_subnet_ids[1]
+      vpc_id           = module.vpc.vpc_id
+      az               = var.availability_zones
+      environment_name = var.environment
+    }
   }
+
+  private_subnet_map = {
+    "az1" = {
+      subnet_id        = module.subnets.app_private_subnet_ids[0]
+      vpc_id           = module.vpc.vpc_id
+      az               = var.availability_zones
+      environment_name = var.environment
+    }
+    "az2" = {
+      subnet_id        = module.subnets.app_private_subnet_ids[1]
+      vpc_id           = module.vpc.vpc_id
+      az               = var.availability_zones
+      environment_name = var.environment
+    }
+  }
+
+  internet_gateway_ids = module.internet_gateway.internet_gateway_ids
+  nat_gateway_ids      = module.nat_gateway.nat_gateway_ids
+  common_tags = var.common_tags
 }
+
 ##################################################################
 # ********************* Logging Modules ***********************
 # Context:
@@ -88,7 +124,7 @@ module "flow_logs" {
   iam_role_arn     = aws_iam_role.flow_logs.arn
   traffic_type     = "ALL"
   enabled          = true
-  tags            = var.common_tags
+  tags             = var.common_tags
 }
 # ------------------------
 # VPC Flow Logs Module
