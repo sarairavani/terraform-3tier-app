@@ -177,6 +177,19 @@ module "iam_roles" {
     tags            = var.common_tags
 
 }
+# ----------------------------------------------------------
+#  Security Groups
+#   - Uses sg_map from variables.tf for clean and dynamic configuration
+# -----------------------------------------------------------
+
+module "security_groups" {
+  source      = "../../modules/security/security-groups"
+  environment = var.environment
+  common_tags = var.common_tags
+
+  sg_map = var.sg_map
+}
+
 
 ##################################################################
 # ********************* Logging Modules ***********************

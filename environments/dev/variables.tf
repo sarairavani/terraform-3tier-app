@@ -52,3 +52,136 @@ variable "common_tags" {
     Region      = "ca-central-1"
   }
 }
+#-------------------------
+# Security Groups Map
+#-------------------------
+variable "sg_map" {
+  description = <<EOT
+Map of security groups for 3-tier architecture in dev environment.
+
+Tiers:
+  - web_sg: Web Tier, public
+  - app_sg: Application Tier, private
+  - db_sg: Database Tier, private
+  - bastion_sg: Bastion host for SSH access
+EOT
+  type = map(object({
+    name        = string
+    tier        = string
+    vpc_id      = string
+    description = string
+    ingress     = object({
+      from_port       = number
+      to_port         = number
+      protocol        = string
+      cidr_blocks     = list(string)
+      security_groups = list(string)
+      description     = string
+    })
+    egress = object({
+      from_port   = number
+      to_port     = number
+      protocol    = string
+      cidr_blocks = list(string)
+      description = string
+    })
+  }))
+
+  default = {
+    web_sg = {
+      name        = "web-sg-dev"
+      tier        = "web"
+      vpc_id      = var.vpc_id
+      description = "Security group for Web Tier"
+
+      ingress = {
+        from_port       = 80
+        to_port         = 80
+        protocol        = "tcp"
+        cidr_blocks     = ["0.0.0.0/0"]
+        security_groups = []
+        description     = "Allow HTTP from anywhere"
+      }
+
+      egress = {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+        description = "Allow all outbound"
+      }
+    }
+
+    app_sg = {
+      name        = "app-sg-dev"
+      tier        = "app"
+      vpc_id      = var.vpc_id
+      description = "Security group for App Tier"
+
+      ingress = {
+        from_port       = 8080
+        to_port         = 8080
+        protocol        = "tcp"
+        cidr_blocks     = []
+        security_groups = [ "web_sg" ]  # Reference by key, resolved in main.tf
+        description     = "Allow traffic from Web Tier only"
+      }
+
+      egress = {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+        description = "Allow all outbound"
+      }
+    }
+
+    db_sg = {
+      name        = "db-sg-dev"
+      tier        = "db"
+      vpc_id      = var.vpc_id
+      description = "Security group for DB Tier"
+
+      ingress = {
+        from_port       = 3306
+        to_port         = 3306
+        protocol        = "tcp"
+        cidr_blocks     = []
+        security_groups = ["app_sg"]  # Reference by key
+        description     = "Allow MySQL from App Tier only"
+      }
+
+      egress = {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+        description = "Allow all outbound"
+      }
+    }
+
+    bastion_sg = {
+      name        = "bastion-sg-dev"
+      tier        = "bastion"
+      vpc_id      = var.vpc_id
+      description = "Security group for Bastion Host"
+
+      ingress = {
+        from_port       = 22
+        to_port         = 22
+        protocol        = "tcp"
+        cidr_blocks     = [var.admin_ip]
+        security_groups = []
+        description     = "Allow SSH from admin IP"
+      }
+
+      egress = {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+        description = "Allow all outbound"
+      }
+    }
+  }
+}
