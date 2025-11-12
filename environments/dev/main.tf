@@ -14,16 +14,16 @@ provider "aws" {
 #   - Private DB Subnets: Fully isolated (no internet)
 #   - VPC designed for high availability across AZs
 #########################################################
-# ------------------------
+# -------------------------
 # VPC Module
-# ------------------------
+# -------------------------
 module "vpc" {
   source     = "../../modules/networking/vpc"
   name       = "dev-vpc"
   cidr_block = var.cidr_block
  
 }
-# ------------------------
+# -----------------------
 # Subnets Module
 # ------------------------
 module "subnets" {
@@ -105,6 +105,79 @@ module "route_tables" {
   common_tags = var.common_tags
 }
 
+################################################################
+# ********************* Security Modules **********************
+#
+#
+#
+#################################################################
+
+# --------------------------------------------------
+# IAM Roles
+# Context:
+#   - IAM roles for each tier (Web, App, DB, Bastion)
+#   - Follows least privilege principle
+# --------------------------------------------------
+
+# IAM Assume Role Policy for EC2 instances
+data "aws_iam_policy_document" "ec2_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+module "iam_roles" {
+  source      = "../../modules/security/iam"
+  environment = var.environment
+
+  iam_roles = {
+    app_role = {
+      name               = "app-tier-role-${var.environment}"
+      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+      managed_policies   = [
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
+        "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      ]
+    }
+
+    web_role = {
+      name               = "web-tier-role-${var.environment}"
+      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+      managed_policies   = [
+        "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+        "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      ]
+    }
+
+    db_role = {
+      name               = "db-tier-role-${var.environment}"
+      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+      managed_policies   = [
+        "arn:aws:iam::aws:policy/AmazonRDSFullAccess",
+        "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+        "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      ]
+    }
+
+    bastion_role = {
+      name               = "bastion-access-role-${var.environment}"
+      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
+      managed_policies   = [
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      ]
+    }
+  }
+
+    tags            = var.common_tags
+
+}
+
 ##################################################################
 # ********************* Logging Modules ***********************
 # Context:
@@ -126,9 +199,9 @@ module "flow_logs" {
   enabled          = true
   tags             = var.common_tags
 }
-# ------------------------
+# --------------------------
 # VPC Flow Logs Module
-# ------------------------
+# --------------------------
 module "flow_logs" {
   source          = "../../modules/logging/flow-logs"
   vpc_ids         = [module.vpc.vpc_id]
@@ -141,9 +214,9 @@ module "flow_logs" {
   enabled         = true
   tags            = var.common_tags
 }
-# ------------------------
+# --------------------------
 # ENI Flow Logs Module
-# ------------------------
+# --------------------------
 module "flow_logs_eni" {
   source          = "../../modules/logging/flow-logs"
   vpc_ids         = [module.vpc.vpc_id]
