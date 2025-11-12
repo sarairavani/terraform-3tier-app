@@ -178,7 +178,7 @@ module "iam_roles" {
 
 }
 # ----------------------------------------------------------
-#  Security Groups
+#  Security Groups Module
 #   - Uses sg_map from variables.tf for clean and dynamic configuration
 # -----------------------------------------------------------
 
@@ -190,7 +190,18 @@ module "security_groups" {
   sg_map = var.sg_map
 }
 
+# ----------------------------------------------------------
+# KMS module
+# ----------------------------------------------------------
+module "kms" {
+  source      = "../../modules/security/kms"
+  name        = var.kms_name
+  alias_name  = var.alias name
+  environment = var.environment
 
+  common_tags = var.common_tags
+}
+ 
 ##################################################################
 # ********************* Logging Modules ***********************
 # Context:

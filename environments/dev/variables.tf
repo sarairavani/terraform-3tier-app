@@ -184,4 +184,17 @@ EOT
       }
     }
   }
+
+}
+#-------------------------
+# KMS
+#-------------------------
+
+variable "kms_name" {
+  description = "KMS name"
+  default     = "dev-3tier-kms"
+}
+variale "alias_name"{
+  description = "alias name"
+  default     = "dev-3tier-kms"
 }
