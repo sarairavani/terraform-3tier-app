@@ -52,9 +52,9 @@ variable "common_tags" {
     Region      = "ca-central-1"
   }
 }
-#-------------------------
+# -------------------------
 # Security Groups Map
-#-------------------------
+# -------------------------
 variable "sg_map" {
   description = <<EOT
 Map of security groups for 3-tier architecture in dev environment.
@@ -186,9 +186,9 @@ EOT
   }
 
 }
-#-------------------------
+# -------------------------
 # KMS
-#-------------------------
+# -------------------------
 
 variable "kms_name" {
   description = "KMS name"
@@ -198,3 +198,32 @@ variale "alias_name"{
   description = "alias name"
   default     = "dev-3tier-kms"
 }
+
+# ----------------------------------------------
+# Secrets Manager
+# ----------------------------------------------
+
+variable "kms_key_id" {
+  description = "KMS key ARN or ID for encrypting secrets"
+  type        = string
+}
+
+variable "db_username" {
+  description = "Database username for RDS"
+  type        = string
+  default     = "appuser"
+}
+
+variable "db_password" {
+  description = "Database password for RDS"
+  type        = string
+  default     = "ChangeMe123!" 
+}
+
+variable "secret_name" {
+  description = "Name of the secret in Secrets Manager"
+  type        = string
+  default     = "dev-db-credentials"
+}
+
+

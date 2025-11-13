@@ -14,18 +14,18 @@ provider "aws" {
 #   - Private DB Subnets: Fully isolated (no internet)
 #   - VPC designed for high availability across AZs
 #########################################################
-# -------------------------
+# ------------------------------------------------------
 # VPC Module
-# -------------------------
+# ------------------------------------------------------
 module "vpc" {
   source     = "../../modules/networking/vpc"
   name       = "dev-vpc"
   cidr_block = var.cidr_block
  
 }
-# -----------------------
+# -----------------------------------------------------
 # Subnets Module
-# ------------------------
+# -----------------------------------------------------
 module "subnets" {
   source                   = "../../modules/networking/subnets"
   vpc_id                   = module.vpc.vpc_id
@@ -201,6 +201,26 @@ module "kms" {
 
   common_tags = var.common_tags
 }
+
+# ----------------------------------------------------------
+#  Secrets Manager 
+# ---------------------------------------------------------
+
+module "secrets_manager" {
+  source      = "../../modules/security/secrets-manager"
+  name        = var.secret_name
+  description = "DB credentials for dev environment"
+  environment = var.environment
+  kms_key_id  = var.kms_key_id
+
+  secret_string = jsonencode({
+    username = var.db_username
+    password = var.db_password
+  })
+
+  common_tags = var.common_tags
+}
+
  
 ##################################################################
 # ********************* Logging Modules ***********************
@@ -224,7 +244,7 @@ module "flow_logs" {
   tags             = var.common_tags
 }
 # --------------------------
-# VPC Flow Logs Module
+# Subnet Flow Logs Module
 # --------------------------
 module "flow_logs" {
   source          = "../../modules/logging/flow-logs"
