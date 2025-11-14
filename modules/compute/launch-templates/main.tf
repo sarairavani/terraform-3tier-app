@@ -1,6 +1,6 @@
 ############################################################
 # Launch Template Module - Main Configuration
-# Purpose: Define reusable EC2 launch templates for app, web, and DB tiers
+# Purpose: Define reusable EC2 launch templates for app, web, basation tiers.
 # Notes:
 # 1. iam_instance_profile:
 #    - Specifies the IAM role that EC2 instances launched from this template will assume.
@@ -24,7 +24,9 @@
 ############################################################
 
 resource "aws_launch_template" "this" {
-  for_each = var.launch_templates
+  for_each = var.launch_templates{
+    for k, v in var.launch_templates : k => v if v.tier != "db"
+  }
 
   name_prefix   = each.key
   image_id      = each.value.ami_id
