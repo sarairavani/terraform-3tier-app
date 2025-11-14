@@ -226,4 +226,62 @@ variable "secret_name" {
   default     = "dev-db-credentials"
 }
 
+############################################################
+# Launch Templates
+############################################################
+
+variable "key_name" {
+  description = "EC2 key pair for SSH access"
+  default     = "my-dev-key"
+}
+
+variable "iam_instance_profile" {
+  description = "IAM instance profile name for EC2 instances"
+  default     = "ec2-instance-profile-dev"
+}
+
+variable "web_ami" {
+  description = "AMI ID for web tier"
+  default     = "ami-0123456789abcdef0"
+}
+
+variable "web_instance_type" {
+  description = "Instance type for web tier"
+  default     = "t3.micro"
+}
+
+variable "web_sg_id" {
+  description = "Security group ID for web tier"
+  default     = "sg-web-tier-id"
+}
+
+variable "app_ami" {
+  description = "AMI ID for app tier"
+  default     = "ami-0123456789abcdef1"
+}
+
+variable "app_instance_type" {
+  description = "Instance type for app tier"
+  default     = "t3.small"
+}
+
+variable "app_sg_id" {
+  description = "Security group ID for app tier"
+  default     = "sg-app-tier-id"
+}
+
+variable "db_ami" {
+  description = "AMI ID for database tier"
+  default     = "ami-0123456789abcdef2"
+}
+
+variable "db_instance_type" {
+  description = "Instance type for database tier"
+  default     = "t3.medium"
+}
+
+variable "db_sg_id" {
+  description = "Security group ID for database tier"
+  default     = "sg-db-tier-id"
+}
 

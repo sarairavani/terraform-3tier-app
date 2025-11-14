@@ -220,6 +220,55 @@ module "secrets_manager" {
 
   common_tags = var.common_tags
 }
+############################################################
+#****************** Compute Module*************************
+# Purpose: Create launch templates for Web, App, and DB tiers
+############################################################
+#
+# ----------------------------------------------------
+#  Launch Template 
+# ----------------------------------------------------
+module "launch_templates" {
+  source = "../../modules/compute/launch-templates"
+
+  environment = var.environment
+  common_tags = var.common_tags
+
+  launch_templates = {
+    web = {
+      ami_id               = var.web_ami
+      instance_type        = var.web_instance_type
+      key_name             = var.key_name
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = true
+      security_groups      = [var.web_sg_id]
+      user_data            = filebase64("${path.module}/scripts/web-userdata.sh")
+      tier                 = "web"
+    }
+
+    app = {
+      ami_id               = var.app_ami
+      instance_type        = var.app_instance_type
+      key_name             = var.key_name
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = false
+      security_groups      = [var.app_sg_id]
+      user_data            = filebase64("${path.module}/scripts/app-userdata.sh")
+      tier                 = "app"
+    }
+
+    db = {
+      ami_id               = var.db_ami
+      instance_type        = var.db_instance_type
+      key_name             = var.key_name
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = false
+      security_groups      = [var.db_sg_id]
+      user_data            = filebase64("${path.module}/scripts/db-userdata.sh")
+      tier                 = "db"
+    }
+  }
+}
 
  
 ##################################################################
