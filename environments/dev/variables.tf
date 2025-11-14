@@ -1,3 +1,6 @@
+############################################################
+# Environment Settings
+############################################################
 variable "aws_region" {
   description = "AWS region for this environment"
   default     = "ca-central-1"
@@ -26,6 +29,10 @@ variable "availability_zones" {
   default     = ["ca-central-1a", "ca-central-1b"]
 }
 
+############################################################
+# VPC Subnets
+############################################################
+
 variable "web_public_subnet_cidrs" {
   description = "CIDR blocks for public subnets (Web Tier)"
   type        = list(string)
@@ -52,9 +59,9 @@ variable "common_tags" {
     Region      = "ca-central-1"
   }
 }
-# -------------------------
+##############################################################
 # Security Groups Map
-# -------------------------
+##############################################################
 variable "sg_map" {
   description = <<EOT
 Map of security groups for 3-tier architecture in dev environment.
@@ -186,22 +193,22 @@ EOT
   }
 
 }
-# -------------------------
+########################################################
 # KMS
-# -------------------------
+#######################################################
 
 variable "kms_name" {
   description = "KMS name"
   default     = "dev-3tier-kms"
 }
-variale "alias_name"{
+variable "alias_name"{
   description = "alias name"
   default     = "dev-3tier-kms"
 }
 
-# ----------------------------------------------
+########################################################
 # Secrets Manager
-# ----------------------------------------------
+########################################################
 
 variable "kms_key_id" {
   description = "KMS key ARN or ID for encrypting secrets"
@@ -284,4 +291,38 @@ variable "db_sg_id" {
   description = "Security group ID for database tier"
   default     = "sg-db-tier-id"
 }
+############################################################
+# EC2 Instances
+############################################################
+
+variable "key_name" {
+  default = "my-dev-key"
+}
+
+variable "iam_instance_profile" {
+  default = "ec2-instance-profile-dev"
+}
+
+# AMIs
+variable "bastion_ami"       { default = "ami-0aaa000bbb111ccc1" }
+variable "web_ami"           { default = "ami-0aaa000bbb111ccc2" }
+variable "app_ami"           { default = "ami-0aaa000bbb111ccc3" }
+variable "db_ami"            { default = "ami-0aaa000bbb111ccc4" }
+
+# Instance types
+variable "bastion_type"      { default = "t3.micro" }
+variable "web_instance_type" { default = "t3.micro" }
+variable "app_instance_type" { default = "t3.small" }
+variable "db_instance_type"  { default = "t3.medium" }
+
+# Security group IDs
+variable "bastion_sg_id" { default = "sg-bastion" }
+variable "web_sg_id"     { default = "sg-web" }
+variable "app_sg_id"     { default = "sg-app" }
+variable "db_sg_id"      { default = "sg-db" }
+
+# Subnets
+variable "public_subnet_1"        { default = "subnet-public-1" }
+variable "private_app_subnet_1"   { default = "subnet-app-1" }
+variable "private_db_subnet_1"    { default = "subnet-db-1" }
 

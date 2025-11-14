@@ -270,6 +270,71 @@ module "launch_templates" {
   }
 }
 
+# ---------------------------------------------------------
+# EC2 Instances 
+# ---------------------------------------------------------
+
+module "ec2_instances" {
+  source = "../../modules/compute/ec2"
+
+  environment = var.environment
+  common_tags = var.common_tags
+
+  instances = {
+    bastion = {
+      ami_id               = var.bastion_ami
+      instance_type        = var.bastion_type
+      subnet_id            = var.public_subnet_1
+      key_name             = var.key_name
+      security_groups      = [var.bastion_sg_id]
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = true
+      user_data            = file("${path.module}/scripts/bastion-userdata.sh")
+      tier                 = "bastion"
+      volume_size          = 20
+    }
+
+    web = {
+      ami_id               = var.web_ami
+      instance_type        = var.web_instance_type
+      subnet_id            = var.public_subnet_1
+      key_name             = var.key_name
+      security_groups      = [var.web_sg_id]
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = false
+      user_data            = file("${path.module}/scripts/web-userdata.sh")
+      tier                 = "web"
+      volume_size          = 16
+    }
+
+    app = {
+      ami_id               = var.app_ami
+      instance_type        = var.app_instance_type
+      subnet_id            = var.private_app_subnet_1
+      key_name             = var.key_name
+      security_groups      = [var.app_sg_id]
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = false
+      user_data            = file("${path.module}/scripts/app-userdata.sh")
+      tier                 = "app"
+      volume_size          = 20
+    }
+
+    db = {
+      ami_id               = var.db_ami
+      instance_type        = var.db_instance_type
+      subnet_id            = var.private_db_subnet_1
+      key_name             = var.key_name
+      security_groups      = [var.db_sg_id]
+      iam_instance_profile = var.iam_instance_profile
+      associate_public_ip  = false
+      user_data            = file("${path.module}/scripts/db-userdata.sh")
+      tier                 = "db"
+      volume_size          = 50
+    }
+  }
+}
+
  
 ##################################################################
 # ********************* Logging Modules ***********************
