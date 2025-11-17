@@ -325,4 +325,39 @@ variable "db_sg_id"      { default = "sg-db" }
 variable "public_subnet_1"        { default = "subnet-public-1" }
 variable "private_app_subnet_1"   { default = "subnet-app-1" }
 variable "private_db_subnet_1"    { default = "subnet-db-1" }
+############################################################
+# Autoscaling
+############################################################
+
+variable "launch_template_ids" {
+  description = "Launch template IDs from launch-template module"
+  default = {
+    web = "lt-0abc123def4567890"   # replace with your web launch template ID
+    app = "lt-0abc123def4567891"   # replace with your app launch template ID
+  }
+}
+
+variable "web_subnet_ids" {
+  description = "Public subnets for Web tier"
+  default = ["subnet-0aaa111bbb222ccc0","subnet-0aaa111bbb222ccc1"]
+}
+
+variable "app_subnet_ids" {
+  description = "Private subnets for App tier"
+  default = ["subnet-0aaa111bbb222ccc2","subnet-0aaa111bbb222ccc3"]
+}
+
+variable "app_target_group_arn" {
+  description = "ARN of App Tier Target Group for ALB"
+  default     = "arn:aws:elasticloadbalancing:ca-central-1:123456789012:targetgroup/app-tg/abcd1234efgh5678"
+}
+
+variable "common_tags" {
+  description = "Common tags for all ASGs"
+  default = {
+    Project     = "terraform-3tier-app"
+    Environment = "dev"
+    ManagedBy   = "Terraform"
+  }
+}
 

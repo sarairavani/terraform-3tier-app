@@ -325,6 +325,36 @@ module "ec2_instances" {
   }
 }
 
+# ----------------------------------------------------------
+# Auto Scaling 
+# ----------------------------------------------------------
+
+module "autoscaling" {
+  source      = "../../modules/compute/autoscaling"
+  environment = "dev"
+
+  asg_definitions = {
+    web = {
+      max_size           = 3
+      min_size           = 1
+      desired_capacity   = 1
+      launch_template_id = var.launch_template_ids["web"]
+      subnet_ids         = var.web_subnet_ids
+      target_group_arn   = null  # attach to ALB later
+    }
+
+    app = {
+      max_size           = 4
+      min_size           = 2
+      desired_capacity   = 2
+      launch_template_id = var.launch_template_ids["app"]
+      subnet_ids         = var.app_subnet_ids
+      target_group_arn   = var.app_target_group_arn
+    }
+  }
+
+  common_tags = var.common_tags
+}
  
 ##################################################################
 # ********************* Logging Modules ***********************
