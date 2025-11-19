@@ -1,6 +1,6 @@
 ############################################################
 # Environment Settings
-############################################################
+############;################################################
 variable "aws_region" {
   description = "AWS region for this environment"
   default     = "ca-central-1"
@@ -358,6 +358,54 @@ variable "common_tags" {
     Project     = "terraform-3tier-app"
     Environment = "dev"
     ManagedBy   = "Terraform"
+  }
+}
+
+############################################################
+# ALB module
+############################################################
+
+variable "vpc_id" {}
+variable "public_subnet_ids" {}
+variable "alb_sg_ids" {}
+
+variable "ssl_certificate_arn" {}
+variable "alb_logs_bucket" {}
+
+
+variable "web_tg" {
+  default = {
+    port                = 80
+    protocol            = "HTTP"
+    target_type         = "instance"
+    stickiness_enabled  = false
+    stickiness_duration = 86400
+    health = {
+      path                = "/"
+      matcher             = "200-299"
+      interval            = 30
+      timeout             = 5
+      healthy_threshold   = 3
+      unhealthy_threshold = 3
+    }
+  }
+}
+
+variable "app_tg" {
+  default = {
+    port                = 8080
+    protocol            = "HTTP"
+    target_type         = "instance"
+    stickiness_enabled  = false
+    stickiness_duration = 86400
+    health = {
+      path                = "/api/health"
+      matcher             = "200-299"
+      interval            = 30
+      timeout             = 5
+      healthy_threshold   = 3
+      unhealthy_threshold = 3
+    }
   }
 }
 

@@ -355,6 +355,38 @@ module "autoscaling" {
 
   common_tags = var.common_tags
 }
+
+# ----------------------------------------------------------
+# ALB module
+# ----------------------------------------------------------
+module "alb" {
+  source = "../../modules/compute/alb"
+
+  env_name          = var.env_name
+  vpc_id            = var.vpc_id
+  public_subnet_ids = var.public_subnet_ids
+  alb_sg_ids        = var.alb_sg_ids
+
+  internal = false
+
+  listener_http_port  = 80
+  listener_https_port = 443
+  enable_https        = true
+  ssl_certificate_arn = var.ssl_certificate_arn
+
+  redirect_http_to_https = true
+  ssl_policy             = "ELBSecurityPolicy-2016-08"
+
+  enable_access_logs = true
+  alb_logs_bucket    = var.alb_logs_bucket
+
+  enable_maintenance = false
+
+  web_tg = var.web_tg
+  app_tg = var.app_tg
+
+  common_tags = var.common_tags
+}
  
 ##################################################################
 # ********************* Logging Modules ***********************
