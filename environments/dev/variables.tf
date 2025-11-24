@@ -491,4 +491,100 @@ variable "web_target_group_arn" {
 variable "app_target_group_arn" {
   default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-app-tg/efgh"
 }
+############################################################
+# db-subnet-group and rds
+###########################################################
+# Subnets for RDS database (private subnets)
+variable "db_subnet_ids" {
+  description = "List of private subnet IDs where RDS instances will be deployed."
+  type        = list(string)
+  default     = ["subnet-private-1", "subnet-private-2"]
+}
 
+# Security groups for RDS database
+variable "db_security_group_ids" {
+  description = "List of security group IDs to attach to RDS instances."
+  type        = list(string)
+  default     = ["sg-db-private"]
+}
+
+# Database master password
+variable "db_password" {
+  description = "Master password for the RDS database. Should be overridden in environment secrets."
+  type        = string
+  default     = "ChangeMe123!"
+}
+
+# KMS key ARN for encrypting RDS storage
+variable "db_kms_key_id" {
+  description = "KMS Key ARN used to encrypt RDS database storage."
+  type        = string
+  default     = "arn:aws:kms:us-east-1:123456789012:key/abcd-1234"
+}
+
+# Common tags for all resources
+variable "common_tags" {
+  description = "Map of tags applied to all resources."
+  type        = map(string)
+  default = {
+    Environment = "dev"
+    Project     = "my-project"
+    Owner       = "Sara"
+  }
+}
+
+# RDS database name (optional, default)
+variable "db_name" {
+  description = "Name of the initial database to create in RDS."
+  type        = string
+  default     = "mydb"
+}
+
+# RDS database username (optional, default)
+variable "db_username" {
+  description = "Username for RDS database admin user."
+  type        = string
+  default     = "admin"
+}
+
+# Backup retention period for RDS
+variable "db_backup_retention_period" {
+  description = "Number of days to retain RDS backups."
+  type        = number
+  default     = 7
+}
+
+# RDS instance class
+variable "db_instance_class" {
+  description = "EC2 instance class for the RDS instance."
+  type        = string
+  default     = "db.t3.medium"
+}
+
+# RDS engine version
+variable "db_engine_version" {
+  description = "Database engine version for RDS."
+  type        = string
+  default     = "15.3"
+}
+
+# Multi-AZ deployment toggle
+variable "db_multi_az" {
+  description = "Whether to deploy RDS in Multi-AZ for high availability."
+  type        = bool
+  default     = true
+}
+
+# RDS allocated storage in GB
+variable "db_allocated_storage" {
+  description = "The allocated storage for RDS in GB."
+  type        = number
+  default     = 20
+}
+
+# RDS storage type
+variable "db_storage_type" {
+  description = "The storage type for RDS (gp2, gp3, io1)."
+  type        = string
+  default     = "gp3"
+}
