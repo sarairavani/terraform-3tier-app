@@ -388,6 +388,29 @@ module "alb" {
   common_tags = var.common_tags
 }
  
+# ----------------------------------------------------------
+# Bastion Host
+# ----------------------------------------------------------
+module "bastion" {
+  source              = "../../modules/compute/bastion-host"
+  name                = "myapp"
+  environment         = var.environment
+
+  vpc_id              = var.vpc_id
+  subnet_id           = var.private_subnet_ids[0]
+  subnet_ids          = var.private_subnet_ids
+
+  ami_id              = var.bastion_ami
+  instance_type       = var.instance_type
+  associate_public_ip = var.associate_public_ip
+  allocate_eip        = var.allocate_eip
+
+  region              = var.region
+  common_tags         = var.common_tags
+
+  enable_route53      = var.enable_route53
+}
+
 ##################################################################
 # ********************* Logging Modules ***********************
 # Context:

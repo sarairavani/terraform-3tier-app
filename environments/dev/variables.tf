@@ -409,3 +409,56 @@ variable "app_tg" {
   }
 }
 
+############################################################
+# Bastion Host
+############################################################
+
+# Naming
+# -----------------------
+variable "name" {
+  type        = string
+  description = "Base name for resources"
+  default     = "myapp"
+}
+
+# Required VPC Inputs
+# ------------------------
+
+variable "vpc_id" {
+  type        = string
+  default     = "vpc-1234567890abcdef"
+}
+
+variable "private_subnet_ids" {
+  type        = list(string)
+  default     = ["subnet-11111111", "subnet-22222222"]
+}
+
+# Bastion Host Inputs
+# ------------------------
+
+variable "bastion_ami" {
+  type        = string
+  default     = "ami-0abcdef1234567890"
+}
+
+variable "instance_type" {
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "associate_public_ip" {
+  type        = bool
+  default     = false
+}
+
+variable "allocate_eip" {
+  type        = bool
+  default     = false
+}
+
+variable "enable_route53" {
+  type        = bool
+  default     = false
+}
+
