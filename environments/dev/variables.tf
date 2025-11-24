@@ -462,3 +462,33 @@ variable "enable_route53" {
   default     = false
 }
 
+############################################################
+# web-tier and app-tier modules
+############################################################
+
+# Launch template IDs come from modules/compute/launch-templates outputs
+variable "launch_template_ids" {
+  default = {
+    web = "lt-0exampleweb"
+    app = "lt-0exampleapp"
+  }
+}
+
+# Subnets
+variable "web_subnet_ids" {
+  default = ["subnet-web-1", "subnet-web-2"]  # private subnets reachable by ALB
+}
+
+variable "app_subnet_ids" {
+  default = ["subnet-app-1", "subnet-app-2"]
+}
+
+# Target groups (from ALB module outputs)
+variable "web_target_group_arn" {
+  default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-web-tg/abcd"
+}
+
+variable "app_target_group_arn" {
+  default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-app-tg/efgh"
+}
+

@@ -410,6 +410,35 @@ module "bastion" {
 
   enable_route53      = var.enable_route53
 }
+############################################################
+# wire web-tier and app-tier modules
+############################################################
+
+module "web_tier" {
+  source             = "../../modules/app/web-tier"
+  name               = "web"
+  environment        = var.environment
+  launch_template_id = var.launch_template_ids["web"]
+  subnet_ids         = var.web_subnet_ids
+  target_group_arn   = var.web_target_group_arn
+  min_size           = 1
+  max_size           = 3
+  desired_capacity   = 1
+  common_tags        = var.common_tags
+}
+
+module "app_tier" {
+  source             = "../../modules/app/app-tier"
+  name               = "app"
+  environment        = var.environment
+  launch_template_id = var.launch_template_ids["app"]
+  subnet_ids         = var.app_subnet_ids
+  target_group_arn   = var.app_target_group_arn
+  min_size           = 2
+  max_size           = 4
+  desired_capacity   = 2
+  common_tags        = var.common_tags
+}
 
 ##################################################################
 # ********************* Logging Modules ***********************
