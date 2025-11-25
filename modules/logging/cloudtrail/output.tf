@@ -1,3 +1,6 @@
+############################################################
+# Outputs cloudtrail for S3 Logging Module
+############################################################
 output "cloudtrail_name" {
   description = "CloudTrail name"
   value       = aws_cloudtrail.this.name

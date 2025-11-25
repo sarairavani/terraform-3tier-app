@@ -624,3 +624,68 @@ variable "cloudwatch_metrics" {
   ]
 }
 
+
+############################################################
+# Logging :
+#  - flow-logs
+#  - s3-logs
+#  - cloudtrail
+###########################################################
+
+variable "log_destination" {
+  description = "ARN of the destination for VPC Flow Logs (S3, CloudWatch, or Kinesis)"
+  default     = "arn:aws:s3:::my-vpc-flow-logs"
+}
+
+variable "bucket_name" {
+type = string
+description = "Name of the S3 bucket for CloudTrail logs"
+}
+
+
+variable "force_destroy" {
+type = bool
+default = false
+description = "Force destroy S3 bucket"
+}
+
+
+variable "trail_name" {
+type = string
+description = "Name of the CloudTrail trail"
+}
+
+
+variable "enable_log_file_validation" {
+type = bool
+default = true
+description = "Enable file integrity validation"
+}
+
+
+variable "is_multi_region_trail" {
+type = bool
+default = true
+description = "Whether CloudTrail is multi-region"
+}
+
+
+variable "enable_insight_selector" {
+type = bool
+default = true
+description = "Enable CloudTrail Insights"
+}
+
+
+variable "sns_topic_arn" {
+type = string
+default = null
+description = "SNS topic for notifications"
+}
+
+
+variable "tags" {
+type = map(string)
+default = {}
+description = "Common tags for resources"
+}

@@ -443,6 +443,8 @@ module "app_tier" {
 ############################################################
 # db-subnet-group and rds
 ############################################################
+
+# ------------------------
 # RDS Subnet Group Module
 # ------------------------
 module "db_subnet_group" {
@@ -451,7 +453,7 @@ module "db_subnet_group" {
   subnet_ids = var.db_subnet_ids
   tags       = local.tags
 }
-
+# ------------------------
 # RDS Database Module
 # -------------------------
 module "rds" {
@@ -472,17 +474,22 @@ module "rds" {
   kms_key_id         = var.db_kms_key_id
   tags               = local.tags
 }
-###############################################################
-# ********************* Logging Modules ***********************
+##################################################################
+# ********************* Logging Modules **************************
+# - flow logs
+# - s3_logs
+# - cloudtrail
+##################################################################
+
+# -----------------------------------------------------------------
+# flow logs:
 # Context:
 #   - Capture network traffic at VPC and Subnet levels and ENI
 #   - Send logs to centralized destination (S3, CW Logs, or Firehose)
 #   - Useful for security monitoring and auditing network activity
-##################################################################
+# ------------------------------------------------------------------
 
-# ------------------------
 # VPC Flow Logs Module
-# ------------------------
 # Captures traffic logs for all VPC-level network activity.
 module "flow_logs" {
   source           = "../../modules/logging/flow-logs"
@@ -493,9 +500,8 @@ module "flow_logs" {
   enabled          = true
   tags             = var.common_tags
 }
-# --------------------------
+
 # Subnet Flow Logs Module
-# --------------------------
 module "flow_logs" {
   source          = "../../modules/logging/flow-logs"
   vpc_ids         = [module.vpc.vpc_id]
@@ -508,9 +514,8 @@ module "flow_logs" {
   enabled         = true
   tags            = var.common_tags
 }
-# --------------------------
+
 # ENI Flow Logs Module
-# --------------------------
 module "flow_logs_eni" {
   source          = "../../modules/logging/flow-logs"
   vpc_ids         = [module.vpc.vpc_id]
@@ -521,6 +526,32 @@ module "flow_logs_eni" {
   enabled         = true
   tags            = var.common_tags
 }
+# ------------
+# s3_logs
+# ------------
+module "s3_logs" {
+source = "../modules/s3-logs"
+
+
+bucket_name = var.bucket_name
+force_destroy = var.force_destroy
+tags = var.tags
+}
+# ---------------
+# cloudtrial
+# ----------------
+module "cloudtrail" {
+source = "../modules/cloudtrail"
+
+
+trail_name = var.trail_name
+enable_log_file_validation = var.enable_log_file_validation
+is_multi_region_trail = var.is_multi_region_trail
+enable_insight_selector = var.enable_insight_selector
+s3_bucket_name = module.s3_logs.bucket_name
+sns_topic_arn = var.sns_topic_arn
+tags = var.tags
+}
 #################################################################
 # ********************* Monitoring Modules **********************
 # Context:
@@ -528,21 +559,29 @@ module "flow_logs_eni" {
 #   - SNS → sends notifications to email (or Slack, Lambda, webhook)
 #   - Alarms → attaches SNS actions to CloudWatch alarms
 ##################################################################
+
+# -------------
+# SNS
+# -------------
 module "sns" {
   source             = "../../modules/monitoring/sns"
   name               = "dev-alerts"
   email_subscription = var.sns_emails
   tags               = var.common_tags
 }
-
+# -----------
+# Cloudwatch
+# -----------
 module "cloudwatch" {
   source    = "../../modules/monitoring/cloudwatch"
   environment = var.environment
   metrics   = var.cloudwatch_metrics
   tags      = var.common_tags
 }
-
+# ---------------------------------
+# Alarms
 # Alarms can reference the SNS topic
+# ----------------------------------
 module "alarms" {
   source         = "../../modules/monitoring/alarms"
   sns_topic_arn  = module.sns.this.arn
