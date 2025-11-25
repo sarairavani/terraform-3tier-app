@@ -588,3 +588,39 @@ variable "db_storage_type" {
   type        = string
   default     = "gp3"
 }
+
+
+############################################################
+# Monitoring :
+#   - cloudwatch
+#   - alarms
+#   - sns
+############################################################
+
+variable "sns_emails" {
+  default = ["devops-team@example.com"]
+}
+
+variable "cloudwatch_metrics" {
+  default = [
+    {
+      namespace           = "AWS/EC2"
+      metric_name         = "CPUUtilization"
+      statistic           = "Average"
+      threshold           = 70
+      period              = 300
+      evaluation_periods  = 2
+      comparison_operator = "GreaterThanThreshold"
+    },
+    {
+      namespace           = "AWS/RDS"
+      metric_name         = "CPUUtilization"
+      statistic           = "Average"
+      threshold           = 70
+      period              = 300
+      evaluation_periods  = 2
+      comparison_operator = "GreaterThanThreshold"
+    }
+  ]
+}
+

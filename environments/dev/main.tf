@@ -521,4 +521,30 @@ module "flow_logs_eni" {
   enabled         = true
   tags            = var.common_tags
 }
+#################################################################
+# ********************* Monitoring Modules **********************
+# Context:
+#   - CloudWatch → creates alarms for EC2, RDS, or any AWS metric
+#   - SNS → sends notifications to email (or Slack, Lambda, webhook)
+#   - Alarms → attaches SNS actions to CloudWatch alarms
+##################################################################
+module "sns" {
+  source             = "../../modules/monitoring/sns"
+  name               = "dev-alerts"
+  email_subscription = var.sns_emails
+  tags               = var.common_tags
+}
 
+module "cloudwatch" {
+  source    = "../../modules/monitoring/cloudwatch"
+  environment = var.environment
+  metrics   = var.cloudwatch_metrics
+  tags      = var.common_tags
+}
+
+# Alarms can reference the SNS topic
+module "alarms" {
+  source         = "../../modules/monitoring/alarms"
+  sns_topic_arn  = module.sns.this.arn
+  alarm_actions  = [module.cloudwatch.alarms...]
+}
