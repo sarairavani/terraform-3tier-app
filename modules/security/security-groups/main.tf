@@ -51,7 +51,7 @@ resource "aws_security_group_rule" "ingress_cidr" {
 resource "aws_security_group_rule" "ingress_sg" {
   for_each = {
     for sg_key, sg_value in var.sg_map :
-    sg_key => sg_value if length(sg_value.ingress.security_groups) > 0
+    sg_key => sg_value if length(coalesce(sg_value.ingress.security_groups, [])) > 0
   }
 
   type                     = "ingress"

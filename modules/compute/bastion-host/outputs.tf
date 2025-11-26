@@ -24,6 +24,6 @@ output "ssm_role_arn" {
 
 output "eip" {
   description = "Elastic IP associated with bastion (if allocated)"
-  value       = var.allocate_eip && var.associate_public_ip ? aws_eip.bastion_eip[0].public_ip : null
+  value       = length(aws_eip.bastion_eip) > 0 ? aws_eip.bastion_eip[0].public_ip : null
 }
 
