@@ -66,6 +66,12 @@ variable "password" {
   sensitive   = true
 }
 
+variable "db_name" {
+  description = "Name of the initial database to create"
+  type        = string
+  default     = null
+}
+
 variable "backup_retention_period" {
   description = "Backup retention in days"
   type        = number

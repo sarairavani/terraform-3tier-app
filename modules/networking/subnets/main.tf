@@ -18,8 +18,8 @@ resource "aws_subnet" "web_public_subnet" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.environment_name}-web-public-${each.key}"
-      Tier = "web"
+      Name    = "${var.environment_name}-web-public-${each.key}"
+      Tier    = "web"
       Network = "public"
     }
   )
@@ -43,8 +43,8 @@ resource "aws_subnet" "app_private_subnet" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.environment_name}-app-private-${each.key}"
-      Tier = "app"
+      Name    = "${var.environment_name}-app-private-${each.key}"
+      Tier    = "app"
       Network = "private"
     }
   )
@@ -68,8 +68,8 @@ resource "aws_subnet" "db_private_subnet" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.environment_name}-db-private-${each.key}"
-      Tier = "database"
+      Name    = "${var.environment_name}-db-private-${each.key}"
+      Tier    = "database"
       Network = "private"
     }
   )

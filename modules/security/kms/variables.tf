@@ -34,38 +34,16 @@ variable "enable_key_rotation" {
   type        = bool
   default     = true
 }
+
 variable "key_policy" {
-  description = "KMS key policy as JSON"
+  description = "KMS key policy as JSON string. If not provided, AWS default policy is used."
   type        = string
-  default     = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "AllowUseOfKey"
-        Effect    = "Allow"
-        Principal = { AWS = "*" }
-        Action    = [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:DescribeKey",
-          "kms:GenerateDataKey",
-          "kms:ReEncrypt*"
-        ]
-        Resource = "*"
-        Condition = {
-          StringEquals = {
-            "aws:ResourceTag/Project" = "terraform-3tier-app"
-          }
-        }
-      },
-      {
-        Sid       = "EnableIAMUserPermissions"
-        Effect    = "Allow"
-        Principal = { AWS = "arn:aws:iam::<YOUR_ACCOUNT_ID>:root" }
-        Action    = "kms:*"
-        Resource  = "*"
-      }
-    ]
-  })
+  default     = null
+}
+
+variable "common_tags" {
+  description = "Common tags for KMS resources"
+  type        = map(string)
+  default     = {}
 }
 

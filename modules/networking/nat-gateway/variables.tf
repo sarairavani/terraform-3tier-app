@@ -22,9 +22,9 @@ Example:
 }
 EOT
   type = map(object({
-    public_subnet_id  = string
-    az                = string
-    environment_name  = string
+    public_subnet_id = string
+    az               = string
+    environment_name = string
   }))
 }
 

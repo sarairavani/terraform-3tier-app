@@ -24,14 +24,14 @@ resource "aws_security_group" "this" {
 }
 
 ############################################################
-# Ingress Rules
-# - Supports multiple sources: CIDR blocks or other SGs
+# Ingress Rules - CIDR based
+# - For rules that use CIDR blocks as source
 ############################################################
 
-resource "aws_security_group_rule" "ingress" {
+resource "aws_security_group_rule" "ingress_cidr" {
   for_each = {
     for sg_key, sg_value in var.sg_map :
-    sg_key => sg_value
+    sg_key => sg_value if length(sg_value.ingress.cidr_blocks) > 0
   }
 
   type              = "ingress"
@@ -39,11 +39,28 @@ resource "aws_security_group_rule" "ingress" {
   from_port         = each.value.ingress.from_port
   to_port           = each.value.ingress.to_port
   protocol          = each.value.ingress.protocol
+  cidr_blocks       = each.value.ingress.cidr_blocks
+  description       = each.value.ingress.description
+}
 
-  # Support source as CIDR or SG reference
-  cidr_blocks      = lookup(each.value.ingress, "cidr_blocks", [])
-  security_groups  = lookup(each.value.ingress, "security_groups", [])
-  description      = each.value.ingress.description
+############################################################
+# Ingress Rules - Security Group based
+# - For rules that use other security groups as source
+############################################################
+
+resource "aws_security_group_rule" "ingress_sg" {
+  for_each = {
+    for sg_key, sg_value in var.sg_map :
+    sg_key => sg_value if length(sg_value.ingress.security_groups) > 0
+  }
+
+  type                     = "ingress"
+  security_group_id        = aws_security_group.this[each.key].id
+  from_port                = each.value.ingress.from_port
+  to_port                  = each.value.ingress.to_port
+  protocol                 = each.value.ingress.protocol
+  source_security_group_id = aws_security_group.this[each.value.ingress.security_groups[0]].id
+  description              = each.value.ingress.description
 }
 
 ############################################################

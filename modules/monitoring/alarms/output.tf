@@ -2,8 +2,13 @@
 # Outputs for Alarms module
 ############################################################
 
-output "alarms" {
-  description = "List of CloudWatch alarm names attached to SNS"
-  value       = [for a in aws_cloudwatch_metric_alarm.attach_sns : a.alarm_name]
+output "sns_topic_arn" {
+  description = "SNS topic ARN for alarm notifications"
+  value       = var.sns_topic_arn
+}
+
+output "alarm_actions" {
+  description = "List of alarm actions"
+  value       = var.alarm_actions
 }
 

@@ -10,7 +10,7 @@ resource "aws_cloudtrail" "this" {
 
   # S3 bucket to store CloudTrail logs
   # If empty, we will create a bucket dynamically (see below)
-  s3_bucket_name = var.s3_bucket_name
+  s3_bucket_name = var.s3_bucket_name != "" ? var.s3_bucket_name : aws_s3_bucket.cloudtrail_bucket["${var.name}-logs"].bucket
 
   # Include global service events like IAM, STS, etc.
   include_global_service_events = var.include_global_service_events
@@ -27,35 +27,42 @@ resource "aws_cloudtrail" "this" {
 
   # Tags for cost allocation and resource management
   tags = merge(var.common_tags, { Name = var.name })
+
+  depends_on = [aws_s3_bucket.cloudtrail_bucket]
 }
 
 ############################################################
 # Optional: S3 bucket for CloudTrail logs
 # This bucket is only created if s3_bucket_name variable is empty.
-# Ensures logs are encrypted and private.
 ############################################################
 
 resource "aws_s3_bucket" "cloudtrail_bucket" {
-  # If s3_bucket_name is empty, create one bucket with key = "<trail_name>-logs"
   for_each = var.s3_bucket_name == "" ? { "${var.name}-logs" = var.name } : {}
 
-  # Bucket name
   bucket = each.key
+  tags   = merge(var.common_tags, { Name = each.key })
+}
 
-  # Private ACL to prevent public access
-  acl = "private"
+resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail_bucket" {
+  for_each = var.s3_bucket_name == "" ? { "${var.name}-logs" = var.name } : {}
 
-  # Server-side encryption configuration
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        # Use AES256 encryption
-        sse_algorithm = "AES256"
-      }
+  bucket = aws_s3_bucket.cloudtrail_bucket[each.key].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  # Apply tags, merge common tags with Name
-  tags = merge(var.common_tags, { Name = each.key })
+resource "aws_s3_bucket_public_access_block" "cloudtrail_bucket" {
+  for_each = var.s3_bucket_name == "" ? { "${var.name}-logs" = var.name } : {}
+
+  bucket = aws_s3_bucket.cloudtrail_bucket[each.key].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 

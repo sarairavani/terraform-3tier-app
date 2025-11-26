@@ -68,11 +68,11 @@ variable "enable_maintenance" {
 
 variable "web_tg" {
   type = object({
-    port                   = number
-    protocol               = string
-    target_type            = string
-    stickiness_enabled     = bool
-    stickiness_duration    = number
+    port                = number
+    protocol            = string
+    target_type         = string
+    stickiness_enabled  = bool
+    stickiness_duration = number
     health = object({
       path                = string
       matcher             = string
@@ -86,11 +86,11 @@ variable "web_tg" {
 
 variable "app_tg" {
   type = object({
-    port                   = number
-    protocol               = string
-    target_type            = string
-    stickiness_enabled     = bool
-    stickiness_duration    = number
+    port                = number
+    protocol            = string
+    target_type         = string
+    stickiness_enabled  = bool
+    stickiness_duration = number
     health = object({
       path                = string
       matcher             = string

@@ -13,12 +13,12 @@
 resource "aws_autoscaling_group" "asg" {
   for_each = var.asg_definitions
 
-  name                      = "${each.key}-${var.environment}-asg"
-  max_size                  = each.value.max_size
-  min_size                  = each.value.min_size
-  desired_capacity          = each.value.desired_capacity
+  name             = "${each.key}-${var.environment}-asg"
+  max_size         = each.value.max_size
+  min_size         = each.value.min_size
+  desired_capacity = each.value.desired_capacity
 
-  vpc_zone_identifier       = each.value.subnet_ids
+  vpc_zone_identifier = each.value.subnet_ids
   launch_template {
     id      = each.value.launch_template_id
     version = "$Latest"
@@ -58,10 +58,10 @@ resource "aws_autoscaling_group" "asg" {
 resource "aws_autoscaling_attachment" "asg_alb" {
   for_each = {
     for k, v in var.asg_definitions :
-    k => v if contains(keys(v), "target_group_arn")
+    k => v if v.target_group_arn != null
   }
 
   autoscaling_group_name = aws_autoscaling_group.asg[each.key].name
-  alb_target_group_arn   = each.value.target_group_arn
+  lb_target_group_arn    = each.value.target_group_arn
 }
 

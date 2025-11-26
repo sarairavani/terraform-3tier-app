@@ -17,9 +17,9 @@ resource "aws_iam_role" "ssm_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = { Service = "ec2.amazonaws.com" }
-        Action = "sts:AssumeRole"
+        Action    = "sts:AssumeRole"
       }
     ]
   })
@@ -61,17 +61,15 @@ resource "aws_security_group" "bastion_sg" {
 
 # EC2 instance (bastion)
 resource "aws_instance" "bastion" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
-  iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
+  iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   associate_public_ip_address = var.associate_public_ip
-  vpc_security_group_ids = concat([aws_security_group.bastion_sg.id], var.additional_security_group_ids)
+  vpc_security_group_ids      = concat([aws_security_group.bastion_sg.id], var.additional_security_group_ids)
 
   # Ensure SSM agent is present; most official AMIs include it. Provide fallback install script.
-  user_data = base64decode(
-    var.user_data == "" ? file("${path.module}/scripts/ensure-ssm.sh") : var.user_data
-  )
+  user_data = var.user_data != "" ? var.user_data : file("${path.module}/scripts/ensure-ssm.sh")
 
   tags = merge(var.common_tags, {
     Name        = "${var.name}-bastion-${var.environment}"
@@ -92,9 +90,9 @@ resource "aws_instance" "bastion" {
 
 # Optional Elastic IP (only used if associate_public_ip = true and user wants stable public IP)
 resource "aws_eip" "bastion_eip" {
-  count = var.allocate_eip && var.associate_public_ip ? 1 : 0
+  count    = var.allocate_eip && var.associate_public_ip ? 1 : 0
   instance = aws_instance.bastion.id
-  vpc      = true
+  domain   = "vpc"
 
   tags = merge(var.common_tags, { Name = "${var.name}-bastion-eip" })
 }
@@ -103,10 +101,10 @@ resource "aws_eip" "bastion_eip" {
 ############################################################
 
 resource "aws_vpc_endpoint" "ssm" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.ssm"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
+  vpc_id             = var.vpc_id
+  service_name       = "com.amazonaws.${var.region}.ssm"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
@@ -114,10 +112,10 @@ resource "aws_vpc_endpoint" "ssm" {
 }
 
 resource "aws_vpc_endpoint" "ssmmessages" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.ssmmessages"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
+  vpc_id             = var.vpc_id
+  service_name       = "com.amazonaws.${var.region}.ssmmessages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
@@ -125,10 +123,10 @@ resource "aws_vpc_endpoint" "ssmmessages" {
 }
 
 resource "aws_vpc_endpoint" "ec2messages" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.ec2messages"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
+  vpc_id             = var.vpc_id
+  service_name       = "com.amazonaws.${var.region}.ec2messages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true

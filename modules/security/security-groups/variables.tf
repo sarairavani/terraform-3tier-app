@@ -36,7 +36,7 @@ EOT
     tier        = string
     vpc_id      = string
     description = string
-    ingress     = object({
+    ingress = object({
       from_port       = number
       to_port         = number
       protocol        = string

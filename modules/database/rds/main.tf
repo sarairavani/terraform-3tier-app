@@ -14,6 +14,7 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids  = var.vpc_security_group_ids
   username                = var.username
   password                = var.password
+  db_name                 = var.db_name
   backup_retention_period = var.backup_retention_period
   publicly_accessible     = false
   skip_final_snapshot     = false

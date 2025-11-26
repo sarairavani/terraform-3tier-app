@@ -17,8 +17,8 @@ resource "aws_route_table" "public" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${each.value.environment_name}-public-rt-${each.value.az}"
-      Tier = "web"
+      Name    = "${each.value.environment_name}-public-rt-${each.value.az}"
+      Tier    = "web"
       Network = "public"
     }
   )
@@ -52,8 +52,8 @@ resource "aws_route_table" "private" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${each.value.environment_name}-private-rt-${each.value.az}"
-      Tier = "app"
+      Name    = "${each.value.environment_name}-private-rt-${each.value.az}"
+      Tier    = "app"
       Network = "private"
     }
   )

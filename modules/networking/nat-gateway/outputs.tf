@@ -14,9 +14,9 @@ output "nat_gateway_eips" {
 
 output "nat_gateway_subnet_map" {
   description = "Mapping of AZs to NAT Gateway IDs"
-  value       = { for k, nat in aws_nat_gateway.this : k => {
-    az              = var.public_subnet_map[k].az
-    nat_gateway_id  = nat.id
-  }}
+  value = { for k, nat in aws_nat_gateway.this : k => {
+    az             = var.public_subnet_map[k].az
+    nat_gateway_id = nat.id
+  } }
 }
 

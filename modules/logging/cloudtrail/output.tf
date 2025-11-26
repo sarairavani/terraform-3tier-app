@@ -13,6 +13,6 @@ output "cloudtrail_arn" {
 
 output "s3_bucket_name" {
   description = "S3 bucket used for CloudTrail logs"
-  value       = coalesce(var.s3_bucket_name, aws_s3_bucket.cloudtrail_bucket[0].id)
+  value       = var.s3_bucket_name != "" ? var.s3_bucket_name : aws_s3_bucket.cloudtrail_bucket["${var.name}-logs"].id
 }
 

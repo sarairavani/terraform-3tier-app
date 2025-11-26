@@ -16,7 +16,7 @@ output "vpc_cidr_block" {
 ############################
 output "flow_logs_status" {
   description = "Indicates if VPC Flow Logs are enabled"
-  value       = module.flow_logs.enabled
+  value       = module.flow_logs_vpc.enabled
 }
 
 output "flow_logs_destination" {
@@ -27,19 +27,19 @@ output "flow_logs_destination" {
 ############################
 # Subnets Outputs
 ############################
-output "public_subnet_ids" {
+output "web_public_subnet_ids" {
   description = "List of public subnet IDs for the Web tier"
-  value       = module.subnets.public_subnet_ids
+  value       = module.subnets.web_public_subnet_ids
 }
 
-output "private_app_subnet_ids" {
+output "app_private_subnet_ids" {
   description = "List of private subnet IDs for the App tier"
-  value       = module.subnets.private_app_subnet_ids
+  value       = module.subnets.app_private_subnet_ids
 }
 
-output "private_db_subnet_ids" {
+output "db_private_subnet_ids" {
   description = "List of private subnet IDs for the DB tier"
-  value       = module.subnets.private_db_subnet_ids
+  value       = module.subnets.db_private_subnet_ids
 }
 
 ############################

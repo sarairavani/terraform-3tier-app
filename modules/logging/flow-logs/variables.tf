@@ -1,6 +1,19 @@
 variable "vpc_ids" {
   description = "List of VPC IDs to create flow logs for"
   type        = list(string)
+  default     = []
+}
+
+variable "subnet_ids" {
+  description = "List of Subnet IDs to create flow logs for"
+  type        = list(string)
+  default     = []
+}
+
+variable "eni_ids" {
+  description = "List of ENI IDs to create flow logs for"
+  type        = list(string)
+  default     = []
 }
 
 variable "log_destination" {

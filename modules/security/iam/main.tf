@@ -39,24 +39,24 @@ resource "aws_iam_role" "this" {
 # - Attach one or more AWS Managed Policies per role
 ############################################################
 
-resource "aws_iam_role_policy_attachment" "attachments" {
-  for_each = {
-    for role_key, role_value in var.iam_roles :
-    role_key => {
-      role_name        = aws_iam_role.this[role_key].name
-      managed_policies = role_value.managed_policies
-    }
-  }
+locals {
+  # Flatten role-policy combinations for for_each
+  role_policy_attachments = flatten([
+    for role_key, role_value in var.iam_roles : [
+      for policy_arn in role_value.managed_policies : {
+        key        = "${role_key}-${replace(policy_arn, "/.*//", "")}"
+        role_name  = aws_iam_role.this[role_key].name
+        policy_arn = policy_arn
+      }
+    ]
+  ])
+}
 
-  # Iterate through managed policy ARNs for each role
-  dynamic "policy_arn" {
-    for_each = each.value.managed_policies
-    content {
-      policy_arn = policy_arn.value
-    }
-  }
+resource "aws_iam_role_policy_attachment" "attachments" {
+  for_each = { for attachment in local.role_policy_attachments : attachment.key => attachment }
 
   role       = each.value.role_name
-  policy_arn = element(each.value.managed_policies, 0)
+  policy_arn = each.value.policy_arn
 }
+
 

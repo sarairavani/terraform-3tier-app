@@ -6,6 +6,13 @@ provider "aws" {
 }
 
 #########################################################
+# Local Values
+#########################################################
+locals {
+  tags = merge(var.common_tags, var.tags)
+}
+
+#########################################################
 # ************** Networking Modules **********************
 # Context:
 #   - Architecture: 3-tier application (Web, App, DB)
@@ -21,7 +28,7 @@ module "vpc" {
   source     = "../../modules/networking/vpc"
   name       = "dev-vpc"
   cidr_block = var.cidr_block
- 
+
 }
 # -----------------------------------------------------
 # Subnets Module
@@ -29,20 +36,27 @@ module "vpc" {
 module "subnets" {
   source                   = "../../modules/networking/subnets"
   vpc_id                   = module.vpc.vpc_id
-  availability_zones        = var.availability_zones
-  web_public_subnet_cidrs   = var.web_public_subnet_cidrs
-  app_private_subnet_cidrs  = var.app_private_subnet_cidrs
-  db_private_subnet_cidrs   = var.db_private_subnet_cidrs
+  environment_name         = var.environment
+  availability_zones       = var.availability_zones
+  web_public_subnet_cidrs  = var.web_public_subnet_cidrs
+  app_private_subnet_cidrs = var.app_private_subnet_cidrs
+  db_private_subnet_cidrs  = var.db_private_subnet_cidrs
+  common_tags              = var.common_tags
 }
 # ------------------------
 # Internet Gateway
 # ------------------------
 module "internet_gateway" {
   source = "../../modules/networking/internet-gateway"
-  vpc_id = module.vpc.vpc_id
-  environment_name = var.environment
-  tags            = var.common_tags
 
+  vpc_map = {
+    "dev" = {
+      vpc_id           = module.vpc.vpc_id
+      environment_name = var.environment
+    }
+  }
+
+  common_tags = var.common_tags
 }
 # ----------------------
 # Nat Gateway
@@ -52,18 +66,19 @@ module "nat_gateway" {
 
   public_subnet_map = {
     "az1" = {
-      public_subnet_id  = module.subnets.public_subnet_ids["az1"]
-      az                = var.availability_zones
-      environment_name  = var.environment
+      public_subnet_id = module.subnets.web_public_subnet_ids[0]
+      az               = var.availability_zones[0]
+      environment_name = var.environment
     }
     "az2" = {
-      public_subnet_id  = module.subnets.public_subnet_ids["az2"]
-      az                = var.availability_zones
-      environment_name  = var.environment
+      public_subnet_id = module.subnets.web_public_subnet_ids[1]
+      az               = var.availability_zones[1]
+      environment_name = var.environment
     }
   }
 
   common_tags = var.common_tags
+}
 # ----------------------
 # Route Tables
 # ----------------------
@@ -74,13 +89,13 @@ module "route_tables" {
     "az1" = {
       subnet_id        = module.subnets.web_public_subnet_ids[0]
       vpc_id           = module.vpc.vpc_id
-      az               = var.availability_zones
+      az               = var.availability_zones[0]
       environment_name = var.environment
     }
     "az2" = {
       subnet_id        = module.subnets.web_public_subnet_ids[1]
       vpc_id           = module.vpc.vpc_id
-      az               = var.availability_zones
+      az               = var.availability_zones[1]
       environment_name = var.environment
     }
   }
@@ -89,20 +104,20 @@ module "route_tables" {
     "az1" = {
       subnet_id        = module.subnets.app_private_subnet_ids[0]
       vpc_id           = module.vpc.vpc_id
-      az               = var.availability_zones
+      az               = var.availability_zones[0]
       environment_name = var.environment
     }
     "az2" = {
       subnet_id        = module.subnets.app_private_subnet_ids[1]
       vpc_id           = module.vpc.vpc_id
-      az               = var.availability_zones
+      az               = var.availability_zones[1]
       environment_name = var.environment
     }
   }
 
   internet_gateway_ids = module.internet_gateway.internet_gateway_ids
   nat_gateway_ids      = module.nat_gateway.nat_gateway_ids
-  common_tags = var.common_tags
+  common_tags          = var.common_tags
 }
 
 ################################################################
@@ -140,7 +155,7 @@ module "iam_roles" {
     app_role = {
       name               = "app-tier-role-${var.environment}"
       assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
+      managed_policies = [
         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
         "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
       ]
@@ -149,7 +164,7 @@ module "iam_roles" {
     web_role = {
       name               = "web-tier-role-${var.environment}"
       assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
+      managed_policies = [
         "arn:aws:iam::aws:policy/AmazonS3FullAccess",
         "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
       ]
@@ -158,7 +173,7 @@ module "iam_roles" {
     db_role = {
       name               = "db-tier-role-${var.environment}"
       assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
+      managed_policies = [
         "arn:aws:iam::aws:policy/AmazonRDSFullAccess",
         "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
         "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
@@ -168,13 +183,13 @@ module "iam_roles" {
     bastion_role = {
       name               = "bastion-access-role-${var.environment}"
       assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
+      managed_policies = [
         "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       ]
     }
   }
 
-    tags            = var.common_tags
+  tags = var.common_tags
 
 }
 # ----------------------------------------------------------
@@ -196,7 +211,7 @@ module "security_groups" {
 module "kms" {
   source      = "../../modules/security/kms"
   name        = var.kms_name
-  alias_name  = var.alias name
+  alias_name  = var.alias_name
   environment = var.environment
 
   common_tags = var.common_tags
@@ -340,7 +355,7 @@ module "autoscaling" {
       desired_capacity   = 1
       launch_template_id = var.launch_template_ids["web"]
       subnet_ids         = var.web_subnet_ids
-      target_group_arn   = null  # attach to ALB later
+      target_group_arn   = null # attach to ALB later
     }
 
     app = {
@@ -387,28 +402,28 @@ module "alb" {
 
   common_tags = var.common_tags
 }
- 
+
 # ----------------------------------------------------------
 # Bastion Host
 # ----------------------------------------------------------
 module "bastion" {
-  source              = "../../modules/compute/bastion-host"
-  name                = "myapp"
-  environment         = var.environment
+  source      = "../../modules/compute/bastion-host"
+  name        = "myapp"
+  environment = var.environment
 
-  vpc_id              = var.vpc_id
-  subnet_id           = var.private_subnet_ids[0]
-  subnet_ids          = var.private_subnet_ids
+  vpc_id     = var.vpc_id
+  subnet_id  = var.private_subnet_ids[0]
+  subnet_ids = var.private_subnet_ids
 
   ami_id              = var.bastion_ami
   instance_type       = var.instance_type
   associate_public_ip = var.associate_public_ip
   allocate_eip        = var.allocate_eip
 
-  region              = var.region
-  common_tags         = var.common_tags
+  region      = var.region
+  common_tags = var.common_tags
 
-  enable_route53      = var.enable_route53
+  enable_route53 = var.enable_route53
 }
 ############################################################
 # wire web-tier and app-tier modules
@@ -457,22 +472,22 @@ module "db_subnet_group" {
 # RDS Database Module
 # -------------------------
 module "rds" {
-  source     = "../../modules/database/rds"
-  name       = "dev-rds"
-  engine     = "postgres"
-  engine_version = var.db_engine_version
-  instance_class = var.db_instance_class
-  multi_az        = var.db_multi_az
-  allocated_storage = var.db_allocated_storage
-  storage_type      = var.db_storage_type
-  db_subnet_group_name = module.db_subnet_group.db_subnet_group_name
-  vpc_security_group_ids = var.db_security_group_ids
-  username           = var.db_username
-  password           = var.db_password
-  db_name            = var.db_name
+  source                  = "../../modules/database/rds"
+  name                    = "dev-rds"
+  engine                  = "postgres"
+  engine_version          = var.db_engine_version
+  instance_class          = var.db_instance_class
+  multi_az                = var.db_multi_az
+  allocated_storage       = var.db_allocated_storage
+  storage_type            = var.db_storage_type
+  db_subnet_group_name    = module.db_subnet_group.db_subnet_group_name
+  vpc_security_group_ids  = var.db_security_group_ids
+  username                = var.db_username
+  password                = var.db_password
+  db_name                 = var.db_name
   backup_retention_period = var.db_backup_retention_period
-  kms_key_id         = var.db_kms_key_id
-  tags               = local.tags
+  kms_key_id              = var.db_kms_key_id
+  tags                    = local.tags
 }
 ##################################################################
 # ********************* Logging Modules **************************
@@ -489,25 +504,69 @@ module "rds" {
 #   - Useful for security monitoring and auditing network activity
 # ------------------------------------------------------------------
 
+# IAM role for VPC Flow Logs
+resource "aws_iam_role" "flow_logs" {
+  name = "${var.environment}-flow-logs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = var.common_tags
+}
+
+resource "aws_iam_role_policy" "flow_logs" {
+  name = "${var.environment}-flow-logs-policy"
+  role = aws_iam_role.flow_logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # VPC Flow Logs Module
 # Captures traffic logs for all VPC-level network activity.
-module "flow_logs" {
-  source           = "../../modules/logging/flow-logs"
-  vpc_ids          = [module.vpc.vpc_id]
-  log_destination  = var.log_destination
-  iam_role_arn     = aws_iam_role.flow_logs.arn
-  traffic_type     = "ALL"
-  enabled          = true
-  tags             = var.common_tags
+module "flow_logs_vpc" {
+  source          = "../../modules/logging/flow-logs"
+  vpc_ids         = [module.vpc.vpc_id]
+  log_destination = var.log_destination
+  iam_role_arn    = aws_iam_role.flow_logs.arn
+  traffic_type    = "ALL"
+  enabled         = true
+  tags            = var.common_tags
 }
 
 # Subnet Flow Logs Module
-module "flow_logs" {
-  source          = "../../modules/logging/flow-logs"
-  vpc_ids         = [module.vpc.vpc_id]
-  subnet_ids      = concat(module.subnets.public_subnet_ids,
-                           module.subnets.private_app_subnet_ids,
-                           module.subnets.private_db_subnet_ids)
+module "flow_logs_subnet" {
+  source  = "../../modules/logging/flow-logs"
+  vpc_ids = []
+  subnet_ids = concat(
+    module.subnets.web_public_subnet_ids,
+    module.subnets.app_private_subnet_ids,
+    module.subnets.db_private_subnet_ids
+  )
   log_destination = var.log_destination
   iam_role_arn    = aws_iam_role.flow_logs.arn
   traffic_type    = "ALL"
@@ -515,42 +574,28 @@ module "flow_logs" {
   tags            = var.common_tags
 }
 
-# ENI Flow Logs Module
-module "flow_logs_eni" {
-  source          = "../../modules/logging/flow-logs"
-  vpc_ids         = [module.vpc.vpc_id]
-  eni_ids         = ["eni-1234567890abcdef0", "eni-abcdef1234567890"]
-  log_destination = var.log_destination
-  iam_role_arn    = aws_iam_role.flow_logs.arn
-  traffic_type    = "ALL"
-  enabled         = true
-  tags            = var.common_tags
-}
 # ------------
 # s3_logs
 # ------------
 module "s3_logs" {
-source = "../modules/s3-logs"
+  source = "../../modules/logging/s3-logs"
 
-
-bucket_name = var.bucket_name
-force_destroy = var.force_destroy
-tags = var.tags
+  name        = var.bucket_name
+  common_tags = var.common_tags
 }
+
 # ---------------
-# cloudtrial
+# cloudtrail
 # ----------------
 module "cloudtrail" {
-source = "../modules/cloudtrail"
+  source = "../../modules/logging/cloudtrail"
 
-
-trail_name = var.trail_name
-enable_log_file_validation = var.enable_log_file_validation
-is_multi_region_trail = var.is_multi_region_trail
-enable_insight_selector = var.enable_insight_selector
-s3_bucket_name = module.s3_logs.bucket_name
-sns_topic_arn = var.sns_topic_arn
-tags = var.tags
+  name                          = var.trail_name
+  s3_bucket_name                = module.s3_logs.bucket_name
+  is_multi_region_trail         = var.is_multi_region_trail
+  include_global_service_events = true
+  enable_logging                = true
+  common_tags                   = var.common_tags
 }
 #################################################################
 # ********************* Monitoring Modules **********************
@@ -573,17 +618,17 @@ module "sns" {
 # Cloudwatch
 # -----------
 module "cloudwatch" {
-  source    = "../../modules/monitoring/cloudwatch"
+  source      = "../../modules/monitoring/cloudwatch"
   environment = var.environment
-  metrics   = var.cloudwatch_metrics
-  tags      = var.common_tags
+  metrics     = var.cloudwatch_metrics
+  tags        = var.common_tags
 }
 # ---------------------------------
 # Alarms
 # Alarms can reference the SNS topic
 # ----------------------------------
 module "alarms" {
-  source         = "../../modules/monitoring/alarms"
-  sns_topic_arn  = module.sns.this.arn
-  alarm_actions  = [module.cloudwatch.alarms...]
+  source        = "../../modules/monitoring/alarms"
+  sns_topic_arn = module.sns.arn
+  alarm_actions = module.cloudwatch.alarms
 }
