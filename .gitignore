@@ -1,0 +1,32 @@
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+# Terraform binary and downloads
+terraform
+terraform_*.zip
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# IDE and editor files
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

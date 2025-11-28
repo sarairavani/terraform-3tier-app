@@ -207,7 +207,7 @@ variable "kms_key_name" {
   description = "Name of the KMS key for encryption"
   default     = "dev-3tier-kms"
 }
-variable "kms_key_alias"{
+variable "kms_key_alias" {
   description = "Alias name for the KMS key"
   default     = "dev-3tier-kms"
 }

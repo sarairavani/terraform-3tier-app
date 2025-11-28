@@ -103,11 +103,11 @@ resource "aws_instance" "bastion" {
 ############################################################
 
 resource "aws_eip" "bastion_eip" {
-  for_each = var.allocate_elastic_ip && var.associate_public_ip ? { for i, inst in aws_instance.bastion : i => inst } : {}
+  count    = var.allocate_elastic_ip && var.associate_public_ip ? 1 : 0
   instance = aws_instance.bastion.id
-  vpc      = true
+  domain   = "vpc"
 
-  tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-bastion-eip-${each.key}" })
+  tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-bastion-eip" })
 }
 
 ############################################################
