@@ -62,7 +62,7 @@ module "nat_gateway" {
       environment_name  = var.environment
     }
   }
-
+}
   common_tags = var.common_tags
 # ----------------------
 # Route Tables
@@ -196,7 +196,7 @@ module "security_groups" {
 module "kms" {
   source      = "../../modules/security/kms"
   name        = var.kms_name
-  alias_name  = var.alias name
+  alias_name  = var.alias_name
   environment = var.environment
 
   common_tags = var.common_tags
@@ -491,7 +491,7 @@ module "rds" {
 
 # VPC Flow Logs Module
 # Captures traffic logs for all VPC-level network activity.
-module "flow_logs" {
+module "flow_logs_vpc" {
   source           = "../../modules/logging/flow-logs"
   vpc_ids          = [module.vpc.vpc_id]
   log_destination  = var.log_destination
@@ -502,7 +502,7 @@ module "flow_logs" {
 }
 
 # Subnet Flow Logs Module
-module "flow_logs" {
+module "flow_logs_subnets" {
   source          = "../../modules/logging/flow-logs"
   vpc_ids         = [module.vpc.vpc_id]
   subnet_ids      = concat(module.subnets.public_subnet_ids,
@@ -530,7 +530,7 @@ module "flow_logs_eni" {
 # s3_logs
 # ------------
 module "s3_logs" {
-source = "../modules/s3-logs"
+source = "../../modules/logging/s3-logs"
 
 
 bucket_name = var.bucket_name
@@ -541,7 +541,7 @@ tags = var.tags
 # cloudtrial
 # ----------------
 module "cloudtrail" {
-source = "../modules/cloudtrail"
+source = "../../modules/logging/cloudtrail"
 
 
 trail_name = var.trail_name

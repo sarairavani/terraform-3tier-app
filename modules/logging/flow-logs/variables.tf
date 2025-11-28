@@ -19,6 +19,19 @@ variable "traffic_type" {
   default     = "ALL"
 }
 
+
+variable "subnet_ids" {
+  description = "Optional list of subnet IDs to create flow logs for"
+  type        = list(string)
+  default     = []
+}
+
+variable "eni_ids" {
+  description = "Optional list of ENI IDs to create flow logs for"
+  type        = list(string)
+  default     = []
+
+
 variable "enabled" {
   description = "Enable or disable flow logs"
   type        = bool

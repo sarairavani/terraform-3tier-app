@@ -23,10 +23,13 @@
 #    - Reduces downtime and improves service stability.
 ############################################################
 
+# Filtered map to exclude DB tier
+locals {
+  non_db_templates = { for k, v in var.launch_templates : k => v if v.tier != "db" }
+}
+
 resource "aws_launch_template" "this" {
-  for_each = var.launch_templates{
-    for k, v in var.launch_templates : k => v if v.tier != "db"
-  }
+  for_each = local.non_db_templates
 
   name_prefix   = each.key
   image_id      = each.value.ami_id

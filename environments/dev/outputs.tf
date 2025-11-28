@@ -1,4 +1,15 @@
 ############################
+# General Outputs
+############################
+output "environment" {
+  description = "The current environment (e.g., dev, staging, prod)"
+  value       = var.environment
+}
+
+output "region" {
+  description = "AWS region for this environment"
+  value       = var.aws_region
+}############################
 # VPC Outputs
 ############################
 output "vpc_id" {
@@ -17,6 +28,21 @@ output "vpc_cidr_block" {
 output "flow_logs_status" {
   description = "Indicates if VPC Flow Logs are enabled"
   value       = module.flow_logs.enabled
+}
+
+output "flow_logs_vpc_id" {
+  description = "Flow Logs for the entire VPC"
+  value       = module.flow_logs_vpc.flow_log_id
+}
+
+output "flow_logs_subnets_id" {
+  description = "Flow Logs for all subnets (public + private app + private db)"
+  value       = module.flow_logs_subnets.flow_log_id
+}
+
+output "flow_logs_eni_id" {
+  description = "Flow Logs for specific ENIs"
+  value       = module.flow_logs_eni.flow_log_id
 }
 
 output "flow_logs_destination" {
@@ -42,15 +68,3 @@ output "private_db_subnet_ids" {
   value       = module.subnets.private_db_subnet_ids
 }
 
-############################
-# General Outputs
-############################
-output "environment" {
-  description = "The current environment (e.g., dev, staging, prod)"
-  value       = var.environment
-}
-
-output "region" {
-  description = "AWS region for this environment"
-  value       = var.aws_region
-}

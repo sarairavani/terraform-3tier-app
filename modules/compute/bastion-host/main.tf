@@ -61,24 +61,31 @@ resource "aws_security_group" "bastion_sg" {
 
 # EC2 instance (bastion)
 resource "aws_instance" "bastion" {
-  ami                    = var.ami_id
+  ami                    = var.bastion_ami
   instance_type          = var.instance_type
+  key_name               = var.key_name
   subnet_id              = var.subnet_id
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
   associate_public_ip_address = var.associate_public_ip
-  vpc_security_group_ids = concat([aws_security_group.bastion_sg.id], var.additional_security_group_ids)
 
-  # Ensure SSM agent is present; most official AMIs include it. Provide fallback install script.
-  user_data = base64decode(
-    var.user_data == "" ? file("${path.module}/scripts/ensure-ssm.sh") : var.user_data
+  vpc_security_group_ids = concat(
+    [aws_security_group.bastion_sg.id], 
+     var.additional_security_group_ids
   )
+
+  # Ensure SSM agent is installed
+  user_data = file("${path.module}/scripts/ensure-ssm.sh")
 
   tags = merge(var.common_tags, {
     Name        = "${var.name}-bastion-${var.environment}"
     Environment = var.environment
     Role        = "bastion"
   })
+  
+ # Enable detailed monitoring (CloudWatch)
+  monitoring = true
 
+ # Root volume
   root_block_device {
     volume_size = var.root_volume_size
     volume_type = "gp3"
@@ -89,15 +96,20 @@ resource "aws_instance" "bastion" {
     create_before_destroy = true
   }
 }
+############################################################
+# Optional Elastic IP
+# (only used if associate_public_ip = true 
+# and user wants stable public IP)
+############################################################
 
-# Optional Elastic IP (only used if associate_public_ip = true and user wants stable public IP)
 resource "aws_eip" "bastion_eip" {
-  count = var.allocate_eip && var.associate_public_ip ? 1 : 0
+  for_each = var.allocate_eip && var.associate_public_ip ? { for i, inst in aws_instance.bastion : i => inst } : {}
   instance = aws_instance.bastion.id
   vpc      = true
 
-  tags = merge(var.common_tags, { Name = "${var.name}-bastion-eip" })
+  tags = merge(var.common_tags, { Name = "${var.name}-bastion-eip${each.key}}
 }
+
 ############################################################
 # VPC Endpoints for SSM (Private-Only Bastion Best Practice)
 ############################################################

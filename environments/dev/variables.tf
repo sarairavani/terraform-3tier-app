@@ -29,9 +29,24 @@ variable "availability_zones" {
   default     = ["ca-central-1a", "ca-central-1b"]
 }
 
+variable "common_tags" {
+  description = "Common tags applied to all resources in this environment"
+  type        = map(string)
+  default = {
+    Project     = "terraform-3tier-app"
+    Environment = "dev"
+    Region      = "ca-central-1"
+  }
+}
+
 ############################################################
 # VPC Subnets
 ############################################################
+ 
+variable "vpc_id" {
+  type        = string
+  default     = "vpc-1234567890abcdef"
+}
 
 variable "web_public_subnet_cidrs" {
   description = "CIDR blocks for public subnets (Web Tier)"
@@ -49,15 +64,6 @@ variable "db_private_subnet_cidrs" {
   description = "CIDR blocks for private subnets (DB Tier)"
   type        = list(string)
   default     = ["10.0.160.0/20", "10.0.176.0/20"]
-}
-variable "common_tags" {
-  description = "Common tags for all resources in this environment"
-  type        = map(string)
-  default = {
-    Project     = "terraform-3tier-app"
-    Environment = "dev"
-    Region      = "ca-central-1"
-  }
 }
 ##############################################################
 # Security Groups Map
@@ -198,11 +204,11 @@ EOT
 #######################################################
 
 variable "kms_name" {
-  description = "KMS name"
+  description = "KMS key name for encryption"
   default     = "dev-3tier-kms"
 }
 variable "alias_name"{
-  description = "alias name"
+  description = "kms alias name"
   default     = "dev-3tier-kms"
 }
 
@@ -234,7 +240,7 @@ variable "secret_name" {
 }
 
 ############################################################
-# Launch Templates
+# EC2 Launch Templates and Instances
 ############################################################
 
 variable "key_name" {
@@ -282,6 +288,11 @@ variable "db_ami" {
   default     = "ami-0123456789abcdef2"
 }
 
+variable "bastion_ami" {
+  description = "AMI ID for Bastion host"
+  default     = "ami-0abcdef1234567890"
+}
+
 variable "db_instance_type" {
   description = "Instance type for database tier"
   default     = "t3.medium"
@@ -291,40 +302,9 @@ variable "db_sg_id" {
   description = "Security group ID for database tier"
   default     = "sg-db-tier-id"
 }
-############################################################
-# EC2 Instances
-############################################################
-
-variable "key_name" {
-  default = "my-dev-key"
-}
-
-variable "iam_instance_profile" {
-  default = "ec2-instance-profile-dev"
-}
-
-# AMIs
-variable "bastion_ami"       { default = "ami-0aaa000bbb111ccc1" }
-variable "web_ami"           { default = "ami-0aaa000bbb111ccc2" }
-variable "app_ami"           { default = "ami-0aaa000bbb111ccc3" }
-variable "db_ami"            { default = "ami-0aaa000bbb111ccc4" }
-
-# Instance types
 variable "bastion_type"      { default = "t3.micro" }
 variable "web_instance_type" { default = "t3.micro" }
-variable "app_instance_type" { default = "t3.small" }
-variable "db_instance_type"  { default = "t3.medium" }
 
-# Security group IDs
-variable "bastion_sg_id" { default = "sg-bastion" }
-variable "web_sg_id"     { default = "sg-web" }
-variable "app_sg_id"     { default = "sg-app" }
-variable "db_sg_id"      { default = "sg-db" }
-
-# Subnets
-variable "public_subnet_1"        { default = "subnet-public-1" }
-variable "private_app_subnet_1"   { default = "subnet-app-1" }
-variable "private_db_subnet_1"    { default = "subnet-db-1" }
 ############################################################
 # Autoscaling
 ############################################################
@@ -332,8 +312,8 @@ variable "private_db_subnet_1"    { default = "subnet-db-1" }
 variable "launch_template_ids" {
   description = "Launch template IDs from launch-template module"
   default = {
-    web = "lt-0abc123def4567890"   # replace with your web launch template ID
-    app = "lt-0abc123def4567891"   # replace with your app launch template ID
+    web = "lt-0abc123def4567890"  
+    app = "lt-0abc123def4567891"
   }
 }
 
@@ -351,21 +331,10 @@ variable "app_target_group_arn" {
   description = "ARN of App Tier Target Group for ALB"
   default     = "arn:aws:elasticloadbalancing:ca-central-1:123456789012:targetgroup/app-tg/abcd1234efgh5678"
 }
-
-variable "common_tags" {
-  description = "Common tags for all ASGs"
-  default = {
-    Project     = "terraform-3tier-app"
-    Environment = "dev"
-    ManagedBy   = "Terraform"
-  }
-}
-
 ############################################################
 # ALB module
 ############################################################
 
-variable "vpc_id" {}
 variable "public_subnet_ids" {}
 variable "alb_sg_ids" {}
 
@@ -412,30 +381,16 @@ variable "app_tg" {
 ############################################################
 # Bastion Host
 ############################################################
-
-# Naming
-# -----------------------
 variable "name" {
   type        = string
   description = "Base name for resources"
   default     = "myapp"
 }
 
-# Required VPC Inputs
-# ------------------------
-
-variable "vpc_id" {
-  type        = string
-  default     = "vpc-1234567890abcdef"
-}
-
 variable "private_subnet_ids" {
   type        = list(string)
   default     = ["subnet-11111111", "subnet-22222222"]
 }
-
-# Bastion Host Inputs
-# ------------------------
 
 variable "bastion_ami" {
   type        = string
@@ -520,17 +475,6 @@ variable "db_kms_key_id" {
   description = "KMS Key ARN used to encrypt RDS database storage."
   type        = string
   default     = "arn:aws:kms:us-east-1:123456789012:key/abcd-1234"
-}
-
-# Common tags for all resources
-variable "common_tags" {
-  description = "Map of tags applied to all resources."
-  type        = map(string)
-  default = {
-    Environment = "dev"
-    Project     = "my-project"
-    Owner       = "Sara"
-  }
 }
 
 # RDS database name (optional, default)
