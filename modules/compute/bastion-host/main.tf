@@ -11,7 +11,7 @@
 
 # IAM role for SSM
 resource "aws_iam_role" "ssm_role" {
-  name = "${var.name}-ssm-role-${var.environment}"
+  name = "${var.bastion_name_prefix}-ssm-role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -24,7 +24,7 @@ resource "aws_iam_role" "ssm_role" {
     ]
   })
 
-  tags = merge(var.common_tags, { Name = "${var.name}-ssm-role" })
+  tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-ssm-role" })
 }
 
 # Attach managed policy for SSM
@@ -35,13 +35,13 @@ resource "aws_iam_role_policy_attachment" "ssm_attach" {
 
 # Instance profile
 resource "aws_iam_instance_profile" "ssm_profile" {
-  name = "${var.name}-ssm-profile-${var.environment}"
+  name = "${var.bastion_name_prefix}-ssm-profile-${var.environment}"
   role = aws_iam_role.ssm_role.name
 }
 
 # Security group for bastion (no inbound by default; allow outbound)
 resource "aws_security_group" "bastion_sg" {
-  name        = "${var.name}-bastion-sg-${var.environment}"
+  name        = "${var.bastion_name_prefix}-bastion-sg-${var.environment}"
   description = "Bastion SG (SSM) - no inbound required. Outbound for SSM/NAT."
   vpc_id      = var.vpc_id
 
@@ -56,13 +56,13 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(var.common_tags, { Name = "${var.name}-bastion-sg" })
+  tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-bastion-sg" })
 }
 
 # EC2 instance (bastion)
 resource "aws_instance" "bastion" {
-  ami                    = var.bastion_ami
-  instance_type          = var.instance_type
+  ami                    = var.bastion_ami_id
+  instance_type          = var.bastion_instance_type
   key_name               = var.key_name
   subnet_id              = var.subnet_id
   iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
@@ -77,7 +77,7 @@ resource "aws_instance" "bastion" {
   user_data = file("${path.module}/scripts/ensure-ssm.sh")
 
   tags = merge(var.common_tags, {
-    Name        = "${var.name}-bastion-${var.environment}"
+    Name        = "${var.bastion_name_prefix}-bastion-${var.environment}"
     Environment = var.environment
     Role        = "bastion"
   })
@@ -87,7 +87,7 @@ resource "aws_instance" "bastion" {
 
  # Root volume
   root_block_device {
-    volume_size = var.root_volume_size
+    volume_size = var.root_volume_size_gb
     volume_type = "gp3"
     encrypted   = true
   }
@@ -103,11 +103,11 @@ resource "aws_instance" "bastion" {
 ############################################################
 
 resource "aws_eip" "bastion_eip" {
-  for_each = var.allocate_eip && var.associate_public_ip ? { for i, inst in aws_instance.bastion : i => inst } : {}
+  for_each = var.allocate_elastic_ip && var.associate_public_ip ? { for i, inst in aws_instance.bastion : i => inst } : {}
   instance = aws_instance.bastion.id
   vpc      = true
 
-  tags = merge(var.common_tags, { Name = "${var.name}-bastion-eip${each.key}}
+  tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-bastion-eip-${each.key}" })
 }
 
 ############################################################
@@ -116,35 +116,35 @@ resource "aws_eip" "bastion_eip" {
 
 resource "aws_vpc_endpoint" "ssm" {
   vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.ssm"
+  service_name      = "com.amazonaws.${var.aws_region}.ssm"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
-  tags                = merge(var.common_tags, { Name = "${var.name}-ssm-endpoint" })
+  tags                = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-ssm-endpoint" })
 }
 
 resource "aws_vpc_endpoint" "ssmmessages" {
   vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.ssmmessages"
+  service_name      = "com.amazonaws.${var.aws_region}.ssmmessages"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
-  tags                = merge(var.common_tags, { Name = "${var.name}-ssmmessages-endpoint" })
+  tags                = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-ssmmessages-endpoint" })
 }
 
 resource "aws_vpc_endpoint" "ec2messages" {
   vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.region}.ec2messages"
+  service_name      = "com.amazonaws.${var.aws_region}.ec2messages"
   vpc_endpoint_type = "Interface"
   subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
-  tags                = merge(var.common_tags, { Name = "${var.name}-ec2messages-endpoint" })
+  tags                = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-ec2messages-endpoint" })
 }
 ############################################################
 # Optional: Route53 Private Record

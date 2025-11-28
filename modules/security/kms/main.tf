@@ -6,7 +6,7 @@
 ############################################################
 
 resource "aws_kms_key" "this" {
-  description             = var.description
+  description             = var.key_description
   deletion_window_in_days = var.deletion_window_in_days
   enable_key_rotation     = var.enable_key_rotation
 
@@ -15,7 +15,7 @@ resource "aws_kms_key" "this" {
   tags = merge(
     var.common_tags,
     {
-      Name        = var.name
+      Name        = var.key_name
       Environment = var.environment
     }
   )
@@ -25,7 +25,7 @@ resource "aws_kms_key" "this" {
 # KMS Alias for easier reference
 ############################################################
 resource "aws_kms_alias" "this" {
-  name          = "alias/${var.alias_name}"
+  name          = "alias/${var.key_alias}"
   target_key_id = aws_kms_key.this.key_id
 }
 

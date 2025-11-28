@@ -1,4 +1,5 @@
-output "table_name" {
-  value = aws_dynamodb_table.terraform_locks.name
+output "lock_table_name" {
+  description = "The name of the DynamoDB table used for Terraform state locking"
+  value       = aws_dynamodb_table.terraform_locks.name
 }
 

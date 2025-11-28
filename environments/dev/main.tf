@@ -18,9 +18,9 @@ provider "aws" {
 # VPC Module
 # ------------------------------------------------------
 module "vpc" {
-  source     = "../../modules/networking/vpc"
-  name       = "dev-vpc"
-  cidr_block = var.cidr_block
+  source         = "../../modules/networking/vpc"
+  vpc_name       = "dev-vpc"
+  vpc_cidr_block = var.cidr_block
  
 }
 # -----------------------------------------------------
@@ -195,8 +195,8 @@ module "security_groups" {
 # ----------------------------------------------------------
 module "kms" {
   source      = "../../modules/security/kms"
-  name        = var.kms_name
-  alias_name  = var.alias_name
+  key_name    = var.kms_key_name
+  key_alias   = var.kms_key_alias
   environment = var.environment
 
   common_tags = var.common_tags
@@ -207,13 +207,13 @@ module "kms" {
 # ---------------------------------------------------------
 
 module "secrets_manager" {
-  source      = "../../modules/security/secrets-manager"
-  name        = var.secret_name
-  description = "DB credentials for dev environment"
-  environment = var.environment
-  kms_key_id  = var.kms_key_id
+  source             = "../../modules/security/secrets-manager"
+  secret_name        = var.secret_name
+  secret_description = "DB credentials for dev environment"
+  environment        = var.environment
+  kms_key_id         = var.kms_key_id
 
-  secret_string = jsonencode({
+  secret_value = jsonencode({
     username = var.db_username
     password = var.db_password
   })
@@ -362,10 +362,10 @@ module "autoscaling" {
 module "alb" {
   source = "../../modules/compute/alb"
 
-  env_name          = var.env_name
-  vpc_id            = var.vpc_id
-  public_subnet_ids = var.public_subnet_ids
-  alb_sg_ids        = var.alb_sg_ids
+  environment_name       = var.environment
+  vpc_id                 = var.vpc_id
+  public_subnet_ids      = var.public_subnet_ids
+  alb_security_group_ids = var.alb_sg_ids
 
   internal = false
 
@@ -392,23 +392,23 @@ module "alb" {
 # Bastion Host
 # ----------------------------------------------------------
 module "bastion" {
-  source              = "../../modules/compute/bastion-host"
-  name                = "myapp"
-  environment         = var.environment
+  source                = "../../modules/compute/bastion-host"
+  bastion_name_prefix   = "myapp"
+  environment           = var.environment
 
-  vpc_id              = var.vpc_id
-  subnet_id           = var.private_subnet_ids[0]
-  subnet_ids          = var.private_subnet_ids
+  vpc_id                = var.vpc_id
+  subnet_id             = var.private_subnet_ids[0]
+  subnet_ids            = var.private_subnet_ids
 
-  ami_id              = var.bastion_ami
-  instance_type       = var.instance_type
-  associate_public_ip = var.associate_public_ip
-  allocate_eip        = var.allocate_eip
+  bastion_ami_id        = var.bastion_ami
+  bastion_instance_type = var.instance_type
+  associate_public_ip   = var.associate_public_ip
+  allocate_elastic_ip   = var.allocate_eip
 
-  region              = var.region
-  common_tags         = var.common_tags
+  aws_region            = var.aws_region
+  common_tags           = var.common_tags
 
-  enable_route53      = var.enable_route53
+  enable_route53        = var.enable_route53
 }
 ############################################################
 # wire web-tier and app-tier modules
@@ -448,31 +448,31 @@ module "app_tier" {
 # RDS Subnet Group Module
 # ------------------------
 module "db_subnet_group" {
-  source     = "../../modules/database/db-subnet-group"
-  name       = "dev-db-subnet-group"
-  subnet_ids = var.db_subnet_ids
-  tags       = local.tags
+  source            = "../../modules/database/db-subnet-group"
+  subnet_group_name = "dev-db-subnet-group"
+  subnet_ids        = var.db_subnet_ids
+  tags              = local.tags
 }
 # ------------------------
 # RDS Database Module
 # -------------------------
 module "rds" {
-  source     = "../../modules/database/rds"
-  name       = "dev-rds"
-  engine     = "postgres"
-  engine_version = var.db_engine_version
-  instance_class = var.db_instance_class
-  multi_az        = var.db_multi_az
-  allocated_storage = var.db_allocated_storage
-  storage_type      = var.db_storage_type
-  db_subnet_group_name = module.db_subnet_group.db_subnet_group_name
+  source                 = "../../modules/database/rds"
+  instance_identifier    = "dev-rds"
+  engine                 = "postgres"
+  engine_version         = var.db_engine_version
+  instance_class         = var.db_instance_class
+  multi_az               = var.db_multi_az
+  allocated_storage      = var.db_allocated_storage
+  storage_type           = var.db_storage_type
+  db_subnet_group_name   = module.db_subnet_group.db_subnet_group_name
   vpc_security_group_ids = var.db_security_group_ids
-  username           = var.db_username
-  password           = var.db_password
-  db_name            = var.db_name
+  master_username        = var.db_username
+  master_password        = var.db_password
+  db_name                = var.db_name
   backup_retention_period = var.db_backup_retention_period
-  kms_key_id         = var.db_kms_key_id
-  tags               = local.tags
+  kms_key_id             = var.db_kms_key_id
+  tags                   = local.tags
 }
 ##################################################################
 # ********************* Logging Modules **************************
@@ -564,10 +564,10 @@ tags = var.tags
 # SNS
 # -------------
 module "sns" {
-  source             = "../../modules/monitoring/sns"
-  name               = "dev-alerts"
-  email_subscription = var.sns_emails
-  tags               = var.common_tags
+  source              = "../../modules/monitoring/sns"
+  topic_name          = "dev-alerts"
+  email_subscriptions = var.sns_emails
+  tags                = var.common_tags
 }
 # -----------
 # Cloudwatch
@@ -584,6 +584,6 @@ module "cloudwatch" {
 # ----------------------------------
 module "alarms" {
   source         = "../../modules/monitoring/alarms"
-  sns_topic_arn  = module.sns.this.arn
+  sns_topic_arn  = module.sns.sns_topic_arn
   alarm_actions  = [module.cloudwatch.alarms...]
 }

@@ -2,10 +2,25 @@
 # ALB Module Variables
 ############################################################
 
-variable "env_name" {}
-variable "vpc_id" {}
-variable "public_subnet_ids" { type = list(string) }
-variable "alb_sg_ids" { type = list(string) }
+variable "environment_name" {
+  description = "Environment name (e.g., dev, staging, prod) used for resource naming"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "VPC ID where the ALB will be deployed"
+  type        = string
+}
+
+variable "public_subnet_ids" {
+  description = "List of public subnet IDs for the ALB to span across availability zones"
+  type        = list(string)
+}
+
+variable "alb_security_group_ids" {
+  description = "List of security group IDs to attach to the ALB"
+  type        = list(string)
+}
 
 variable "internal" {
   type    = bool

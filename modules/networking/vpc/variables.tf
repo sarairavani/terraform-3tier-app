@@ -1,15 +1,15 @@
-variable "name" {
-  description = "Name of the VPC"
+variable "vpc_name" {
+  description = "Name of the VPC for identification and tagging"
   type        = string
 }
 
-variable "cidr_block" {
-  description = "CIDR block for the VPC"
+variable "vpc_cidr_block" {
+  description = "CIDR block for the VPC (e.g., 10.0.0.0/16)"
   type        = string
 }
 
 variable "tags" {
-  description = "Tags to apply to the VPC"
+  description = "Additional tags to apply to the VPC"
   type        = map(string)
   default     = {}
 }

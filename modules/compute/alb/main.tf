@@ -11,10 +11,10 @@
 ############################################################
 
 resource "aws_lb" "this" {
-  name               = "${var.env_name}-alb"
+  name               = "${var.environment_name}-alb"
   internal           = var.internal
   load_balancer_type = "application"
-  security_groups    = var.alb_sg_ids
+  security_groups    = var.alb_security_group_ids
   subnets            = var.public_subnet_ids
 
   # ALB Access Logs (Optional)
@@ -22,12 +22,12 @@ resource "aws_lb" "this" {
     for_each = var.enable_access_logs ? [1] : []
     content {
       bucket  = var.alb_logs_bucket
-      prefix  = "${var.env_name}/alb"
+      prefix  = "${var.environment_name}/alb"
       enabled = true
     }
   }
 
-  tags = merge(var.common_tags, { Name = "${var.env_name}-alb" })
+  tags = merge(var.common_tags, { Name = "${var.environment_name}-alb" })
 }
 
 ############################################################
@@ -35,7 +35,7 @@ resource "aws_lb" "this" {
 ############################################################
 
 resource "aws_lb_target_group" "web" {
-  name        = "${var.env_name}-web-tg"
+  name        = "${var.environment_name}-web-tg"
   port        = var.web_tg.port
   protocol    = var.web_tg.protocol
   vpc_id      = var.vpc_id
@@ -56,7 +56,7 @@ resource "aws_lb_target_group" "web" {
     unhealthy_threshold = var.web_tg.health.unhealthy_threshold
   }
 
-  tags = merge(var.common_tags, { Name = "${var.env_name}-web-tg" })
+  tags = merge(var.common_tags, { Name = "${var.environment_name}-web-tg" })
 }
 
 ############################################################
@@ -64,7 +64,7 @@ resource "aws_lb_target_group" "web" {
 ############################################################
 
 resource "aws_lb_target_group" "app" {
-  name        = "${var.env_name}-app-tg"
+  name        = "${var.environment_name}-app-tg"
   port        = var.app_tg.port
   protocol    = var.app_tg.protocol
   vpc_id      = var.vpc_id
@@ -85,7 +85,7 @@ resource "aws_lb_target_group" "app" {
     unhealthy_threshold = var.app_tg.health.unhealthy_threshold
   }
 
-  tags = merge(var.common_tags, { Name = "${var.env_name}-app-tg" })
+  tags = merge(var.common_tags, { Name = "${var.environment_name}-app-tg" })
 }
 
 ############################################################

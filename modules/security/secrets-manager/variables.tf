@@ -2,19 +2,19 @@
 # Secrets Manager Module Variables
 ############################################################
 
-variable "name" {
-  description = "Name of the secret"
+variable "secret_name" {
+  description = "Name of the secret in AWS Secrets Manager"
   type        = string
 }
 
-variable "description" {
-  description = "Description of the secret"
+variable "secret_description" {
+  description = "Description of the secret's purpose"
   type        = string
   default     = "Secrets for 3-tier application"
 }
 
 variable "environment" {
-  description = "Environment name (dev, staging, prod)"
+  description = "Environment name (e.g., dev, staging, prod)"
   type        = string
 }
 
@@ -23,13 +23,14 @@ variable "kms_key_id" {
   type        = string
 }
 
-variable "secret_string" {
-  description = "JSON string containing secret values"
+variable "secret_value" {
+  description = "JSON-formatted string containing the secret key-value pairs"
   type        = string
+  sensitive   = true
 }
 
 variable "common_tags" {
-  description = "Common tags for resources"
+  description = "Common tags to apply to all Secrets Manager resources"
   type        = map(string)
   default     = {}
 }
