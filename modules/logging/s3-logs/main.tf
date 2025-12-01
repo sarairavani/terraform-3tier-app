@@ -63,7 +63,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
 ############################################################
 
 resource "aws_s3_bucket_logging" "this" {
-  count         = var.access_logs_bucket_name != "" ? 1 : 0
+  count         = var.access_logs_bucket_name != null && var.access_logs_bucket_name != "" ? 1 : 0
   bucket        = aws_s3_bucket.this.id
   target_bucket = var.access_logs_bucket_name
   target_prefix = "logs/"
