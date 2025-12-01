@@ -30,7 +30,7 @@ variable "eni_ids" {
   description = "Optional list of ENI IDs to create flow logs for"
   type        = list(string)
   default     = []
-
+}
 
 variable "enabled" {
   description = "Enable or disable flow logs"

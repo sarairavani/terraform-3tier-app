@@ -13,3 +13,13 @@ output "eni_flow_log_ids" {
   value       = [for f in aws_flow_log.eni : f.id]
 }
 
+# Alias for backward compatibility
+output "flow_log_id" {
+  description = "IDs of created flow logs (combined)"
+  value       = concat(
+    [for f in aws_flow_log.vpc : f.id],
+    [for f in aws_flow_log.subnet : f.id],
+    [for f in aws_flow_log.eni : f.id]
+  )
+}
+

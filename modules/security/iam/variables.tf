@@ -17,43 +17,6 @@ EOT
     assume_role_policy = string
     managed_policies   = list(string)
   }))
-  default = {
-    "app_role" = {
-      name               = "app-tier-role"
-      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
-        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess",
-        "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-      ]
-    }
-
-    "web_role" = {
-      name               = "web-tier-role"
-      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
-        "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-        "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-      ]
-    }
-
-    "db_role" = {
-      name               = "db-tier-role"
-      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
-        "arn:aws:iam::aws:policy/AmazonRDSFullAccess",
-        "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
-        "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-      ]
-    }
-
-    "bastion_role" = {
-      name               = "bastion-access-role"
-      assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
-      managed_policies   = [
-        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-      ]
-    }
-  }
 }
 
 variable "environment" {

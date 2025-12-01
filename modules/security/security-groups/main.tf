@@ -40,10 +40,9 @@ resource "aws_security_group_rule" "ingress" {
   to_port           = each.value.ingress.to_port
   protocol          = each.value.ingress.protocol
 
-  # Support source as CIDR or SG reference
-  cidr_blocks      = lookup(each.value.ingress, "cidr_blocks", [])
-  security_groups  = lookup(each.value.ingress, "security_groups", [])
-  description      = each.value.ingress.description
+  # Support source as CIDR - security_groups reference not supported in this simple model
+  cidr_blocks = length(each.value.ingress.cidr_blocks) > 0 ? each.value.ingress.cidr_blocks : null
+  description = each.value.ingress.description
 }
 
 ############################################################

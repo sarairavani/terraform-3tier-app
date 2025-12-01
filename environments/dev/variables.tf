@@ -1,6 +1,6 @@
 ############################################################
 # Environment Settings
-############;################################################
+############################################################
 variable "aws_region" {
   description = "AWS region for this environment"
   default     = "ca-central-1"
@@ -11,7 +11,7 @@ variable "environment" {
   default     = "dev"
 }
 variable "project_name" {
-  description = "Name of the project, used for resource naming and tagging""
+  description = "Name of the project, used for resource naming and tagging"
   default     = "terraform-3tier-app"
 }
 
@@ -100,105 +100,12 @@ EOT
       description = string
     })
   }))
+}
 
-  default = {
-    web_sg = {
-      name        = "web-sg-dev"
-      tier        = "web"
-      vpc_id      = var.vpc_id
-      description = "Security group for Web Tier"
-
-      ingress = {
-        from_port       = 80
-        to_port         = 80
-        protocol        = "tcp"
-        cidr_blocks     = ["0.0.0.0/0"]
-        security_groups = []
-        description     = "Allow HTTP from anywhere"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-
-    app_sg = {
-      name        = "app-sg-dev"
-      tier        = "app"
-      vpc_id      = var.vpc_id
-      description = "Security group for App Tier"
-
-      ingress = {
-        from_port       = 8080
-        to_port         = 8080
-        protocol        = "tcp"
-        cidr_blocks     = []
-        security_groups = [ "web_sg" ]  # Reference by key, resolved in main.tf
-        description     = "Allow traffic from Web Tier only"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-
-    db_sg = {
-      name        = "db-sg-dev"
-      tier        = "db"
-      vpc_id      = var.vpc_id
-      description = "Security group for DB Tier"
-
-      ingress = {
-        from_port       = 3306
-        to_port         = 3306
-        protocol        = "tcp"
-        cidr_blocks     = []
-        security_groups = ["app_sg"]  # Reference by key
-        description     = "Allow MySQL from App Tier only"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-
-    bastion_sg = {
-      name        = "bastion-sg-dev"
-      tier        = "bastion"
-      vpc_id      = var.vpc_id
-      description = "Security group for Bastion Host"
-
-      ingress = {
-        from_port       = 22
-        to_port         = 22
-        protocol        = "tcp"
-        cidr_blocks     = [var.admin_ip]
-        security_groups = []
-        description     = "Allow SSH from admin IP"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-  }
-
+variable "admin_ip" {
+  description = "Admin IP address for SSH access to bastion host"
+  type        = string
+  default     = "0.0.0.0/0"
 }
 ########################################################
 # KMS
@@ -304,8 +211,16 @@ variable "db_sg_id" {
   description = "Security group ID for database tier"
   default     = "sg-db-tier-id"
 }
-variable "bastion_type"      { default = "t3.micro" }
-variable "web_instance_type" { default = "t3.micro" }
+
+variable "bastion_sg_id" {
+  description = "Security group ID for bastion host"
+  default     = "sg-bastion-id"
+}
+
+variable "bastion_type" {
+  description = "Instance type for bastion host"
+  default     = "t3.micro"
+}
 
 ############################################################
 # Autoscaling
@@ -395,12 +310,6 @@ variable "private_subnet_ids" {
   default     = ["subnet-11111111", "subnet-22222222"]
 }
 
-variable "bastion_ami" {
-  type        = string
-  description = "AMI ID for the bastion host instance"
-  default     = "ami-0abcdef1234567890"
-}
-
 variable "instance_type" {
   type        = string
   description = "EC2 instance type for the bastion host"
@@ -429,30 +338,11 @@ variable "enable_route53" {
 # web-tier and app-tier modules
 ############################################################
 
-# Launch template IDs come from modules/compute/launch-templates outputs
-variable "launch_template_ids" {
-  default = {
-    web = "lt-0exampleweb"
-    app = "lt-0exampleapp"
-  }
-}
-
-# Subnets
-variable "web_subnet_ids" {
-  default = ["subnet-web-1", "subnet-web-2"]  # private subnets reachable by ALB
-}
-
-variable "app_subnet_ids" {
-  default = ["subnet-app-1", "subnet-app-2"]
-}
-
 # Target groups (from ALB module outputs)
 variable "web_target_group_arn" {
-  default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-web-tg/abcd"
-}
-
-variable "app_target_group_arn" {
-  default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-app-tg/efgh"
+  description = "ARN of web tier Target Group for ALB"
+  type        = string
+  default     = "arn:aws:elasticloadbalancing:...:targetgroup/dev-web-tg/abcd"
 }
 ############################################################
 # db-subnet-group and rds
@@ -471,13 +361,6 @@ variable "db_security_group_ids" {
   default     = ["sg-db-private"]
 }
 
-# Database master password
-variable "db_password" {
-  description = "Master password for the RDS database. Should be overridden in environment secrets."
-  type        = string
-  default     = "ChangeMe123!"
-}
-
 # KMS key ARN for encrypting RDS storage
 variable "db_kms_key_id" {
   description = "KMS Key ARN used to encrypt RDS database storage."
@@ -490,13 +373,6 @@ variable "db_name" {
   description = "Name of the initial database to create in RDS."
   type        = string
   default     = "mydb"
-}
-
-# RDS database username (optional, default)
-variable "db_username" {
-  description = "Username for RDS database admin user."
-  type        = string
-  default     = "admin"
 }
 
 # Backup retention period for RDS
@@ -583,11 +459,6 @@ variable "cloudwatch_metrics" {
 #  - s3-logs
 #  - cloudtrail
 ###########################################################
-
-variable "log_destination" {
-  description = "ARN of the destination for VPC Flow Logs (S3, CloudWatch, or Kinesis)"
-  default     = "arn:aws:s3:::my-vpc-flow-logs"
-}
 
 variable "bucket_name" {
 type = string

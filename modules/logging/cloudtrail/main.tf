@@ -9,7 +9,6 @@ resource "aws_cloudtrail" "this" {
   name = var.trail_name
 
   # S3 bucket to store CloudTrail logs
-  # If empty, we will create a bucket dynamically (see below)
   s3_bucket_name = var.s3_bucket_name
 
   # Include global service events like IAM, STS, etc.
@@ -22,40 +21,9 @@ resource "aws_cloudtrail" "this" {
   enable_logging = var.enable_logging
 
   # Optional KMS key for encrypting CloudTrail logs
-  # If kms_key_id is empty string, set null
   kms_key_id = var.kms_key_id != "" ? var.kms_key_id : null
 
   # Tags for cost allocation and resource management
   tags = merge(var.common_tags, { Name = var.trail_name })
-}
-
-############################################################
-# Optional: S3 bucket for CloudTrail logs
-# This bucket is only created if s3_bucket_name variable is empty.
-# Ensures logs are encrypted and private.
-############################################################
-
-resource "aws_s3_bucket" "cloudtrail_bucket" {
-  # If s3_bucket_name is empty, create one bucket with key = "<trail_name>-logs"
-  for_each = var.s3_bucket_name == "" ? { "${var.name}-logs" = var.name } : {}
-
-  # Bucket name
-  bucket = each.key
-
-  # Private ACL to prevent public access
-  acl = "private"
-
-  # Server-side encryption configuration
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        # Use AES256 encryption
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  # Apply tags, merge common tags with Name
-  tags = merge(var.common_tags, { Name = each.key })
 }
 

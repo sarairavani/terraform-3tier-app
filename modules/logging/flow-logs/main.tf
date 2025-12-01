@@ -64,8 +64,6 @@ resource "aws_flow_log" "eni" {
   iam_role_arn         = var.iam_role_arn
   traffic_type         = var.traffic_type
   log_destination_type = "s3"
-  resource_id          = each.key
-  resource_type        = "NetworkInterface"
-  enabled              = var.enabled
-  tags                 = merge(var.common_tags, { ResourceType = "ENI" })
+  eni_id               = each.value
+  tags                 = merge(var.tags, { ResourceType = "ENI" })
 }

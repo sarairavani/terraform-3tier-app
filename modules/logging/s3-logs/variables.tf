@@ -34,6 +34,13 @@ variable "access_logs_bucket_name" {
   default     = ""
 }
 
+# Force destroy bucket
+variable "force_destroy" {
+  description = "Allow destruction of bucket even if it contains objects"
+  type        = bool
+  default     = false
+}
+
 # Common tags
 variable "common_tags" {
   description = "Common tags applied to all resources"

@@ -3,74 +3,83 @@
 ############################################################
 
 resource "aws_s3_bucket" "this" {
-  # Name of the bucket
-  bucket = var.bucket_name
+  bucket        = var.bucket_name
+  force_destroy = var.force_destroy
 
-  # Private ACL ensures bucket is not public
-  acl = "private"
+  tags = merge(var.common_tags, { Name = var.bucket_name })
+}
 
-  ##########################################################
-  # Versioning
-  # Enables versioning for object recovery
-  ##########################################################
-  versioning {
-    enabled = var.enable_versioning
+############################################################
+# Versioning Configuration
+############################################################
+
+resource "aws_s3_bucket_versioning" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  versioning_configuration {
+    status = var.enable_versioning ? "Enabled" : "Disabled"
   }
+}
 
-  ##########################################################
-  # Server-side encryption
-  # Encrypts objects in the bucket using AES256
-  ##########################################################
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = var.enable_encryption ? "AES256" : null
-      }
+############################################################
+# Server-side Encryption Configuration
+############################################################
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  count  = var.enable_encryption ? 1 : 0
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  ##########################################################
-  # Lifecycle rules
-  # Automatically transition non-current object versions to Glacier and delete old versions
-  ##########################################################
-  lifecycle_rule {
-    id      = "archive_old_versions"
-    enabled = true
+############################################################
+# Lifecycle Rules Configuration
+############################################################
 
-    # Move old versions to Glacier after 30 days
+resource "aws_s3_bucket_lifecycle_configuration" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    id     = "archive_old_versions"
+    status = "Enabled"
+
     noncurrent_version_transition {
-      days          = 30
-      storage_class = "GLACIER"
+      noncurrent_days = 30
+      storage_class   = "GLACIER"
     }
 
-    # Delete old versions after 365 days
     noncurrent_version_expiration {
-      days = 365
+      noncurrent_days = 365
     }
   }
+}
 
-  ##########################################################
-  # Logging
-  # Optional: store access logs in another bucket
-  ##########################################################
-  logging {
-    target_bucket = var.access_logs_bucket_name != "" ? var.access_logs_bucket_name :
-    target_prefix = "logs/"
-  }
+############################################################
+# Logging Configuration (Optional)
+############################################################
 
-  ##########################################################
-  # Public access block (AWS recommended)
-  # Prevents public exposure of the bucket
-  ##########################################################
+resource "aws_s3_bucket_logging" "this" {
+  count         = var.access_logs_bucket_name != "" ? 1 : 0
+  bucket        = aws_s3_bucket.this.id
+  target_bucket = var.access_logs_bucket_name
+  target_prefix = "logs/"
+}
+
+############################################################
+# Public Access Block Configuration
+############################################################
+
+resource "aws_s3_bucket_public_access_block" "this" {
+  bucket = aws_s3_bucket.this.id
+
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-
-  ##########################################################
-  # Tags
-  # Merge common tags with a Name tag
-  ##########################################################
-  tags = merge(var.common_tags, { Name = var.bucket_name })
 }
+
 

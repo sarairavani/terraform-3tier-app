@@ -58,10 +58,10 @@ resource "aws_autoscaling_group" "asg" {
 resource "aws_autoscaling_attachment" "asg_alb" {
   for_each = {
     for k, v in var.asg_definitions :
-    k => v if contains(keys(v), "target_group_arn")
+    k => v if v.target_group_arn != null
   }
 
   autoscaling_group_name = aws_autoscaling_group.asg[each.key].name
-  alb_target_group_arn   = each.value.target_group_arn
+  lb_target_group_arn    = each.value.target_group_arn
 }
 

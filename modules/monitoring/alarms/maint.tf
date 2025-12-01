@@ -1,12 +1,19 @@
 ############################################################
-# Attach SNS to existing alarms
+# Alarms Module - Placeholder for SNS-attached alarms
 ############################################################
 
-resource "aws_cloudwatch_metric_alarm" "attach_sns" {
-  for_each = var.alarm_actions
+# This module serves as a placeholder for attaching SNS actions
+# to existing CloudWatch alarms. The actual alarm definitions
+# are created in the cloudwatch module.
 
-  alarm_name          = "AttachSNS-${each.key}"
-  alarm_actions       = [var.sns_topic_arn]
-  # This is a placeholder if you want to attach existing metrics to SNS
+# Output for debugging/verification
+output "sns_topic_arn" {
+  description = "SNS topic ARN for alarm notifications"
+  value       = var.sns_topic_arn
+}
+
+output "alarm_count" {
+  description = "Number of alarms configured"
+  value       = length(var.alarm_actions)
 }
 
