@@ -3,32 +3,32 @@
 ############################################################
 
 # Name of the S3 bucket
-variable "name" {
-  description = "Name of the S3 bucket (must be globally unique)"
+variable "bucket_name" {
+  description = "Name of the S3 bucket for storing logs (must be globally unique)"
   type        = string
 
   validation {
-    condition     = length(var.name) > 3
+    condition     = length(var.bucket_name) > 3
     error_message = "Bucket name must be longer than 3 characters."
   }
 }
 
 # Enable versioning
 variable "enable_versioning" {
-  description = "Enable versioning for the S3 bucket"
+  description = "Enable versioning for the S3 bucket to support object recovery"
   type        = bool
   default     = true
 }
 
 # Enable AES256 server-side encryption
 variable "enable_encryption" {
-  description = "Enable AES256 server-side encryption"
+  description = "Enable AES256 server-side encryption for objects in the bucket"
   type        = bool
   default     = true
 }
 
 # Optional logging bucket for storing access logs
-variable "logging_bucket_name" {
+variable "access_logs_bucket_name" {
   description = "Name of the S3 bucket to store access logs. Leave empty to disable logging."
   type        = string
   default     = ""

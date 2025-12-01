@@ -2,18 +2,18 @@
 # Bastion Host (SSM) Module Variables
 ############################################################
 
-variable "name" {
+variable "bastion_name_prefix" {
   description = "Name prefix for the bastion host resources"
   type        = string
 }
 
 variable "environment" {
-  description = "Environment name (dev, staging, prod)"
+  description = "Environment name (e.g., dev, staging, prod)"
   type        = string
 }
 
 variable "vpc_id" {
-  description = "VPC ID where bastion host will be deployed"
+  description = "VPC ID where the bastion host will be deployed"
   type        = string
 }
 
@@ -23,20 +23,26 @@ variable "subnet_id" {
 }
 
 variable "subnet_ids" {
-  description = "All private subnets for optional Route53 records"
+  description = "List of private subnets for optional Route53 records"
   type        = list(string)
   default     = []
 }
 
-variable "ami_id" {
-  description = "AMI ID for the bastion host"
+variable "bastion_ami_id" {
+  description = "AMI ID for the bastion host instance"
   type        = string
 }
 
-variable "instance_type" {
-  description = "EC2 instance type for bastion host"
+variable "bastion_instance_type" {
+  description = "EC2 instance type for the bastion host"
   type        = string
   default     = "t3.micro"
+}
+
+variable "key_name" {
+  description = "EC2 key pair name for SSH access (optional when using SSM)"
+  type        = string
+  default     = ""
 }
 
 variable "associate_public_ip" {
@@ -46,7 +52,7 @@ variable "associate_public_ip" {
 }
 
 variable "allocate_eip" {
-  description = "Allocate Elastic IP for bastion host if public IP is assigned"
+  description = "Allocate an Elastic IP for the bastion host (only if public IP is assigned)"
   type        = bool
   default     = false
 }
@@ -57,19 +63,19 @@ variable "user_data" {
   default     = ""
 }
 
-variable "root_volume_size" {
+variable "root_volume_size_gb" {
   description = "Root volume size in GB"
   type        = number
   default     = 20
 }
 
 variable "additional_security_group_ids" {
-  description = "Additional security groups to attach to bastion host"
+  description = "Additional security group IDs to attach to the bastion host"
   type        = list(string)
   default     = []
 }
 
-variable "region" {
+variable "aws_region" {
   description = "AWS region where the VPC and bastion reside"
   type        = string
 }
@@ -81,7 +87,7 @@ variable "common_tags" {
 }
 
 variable "enable_route53" {
-  description = "Enable creating private Route53 record for bastion host"
+  description = "Enable creating private Route53 record for the bastion host"
   type        = bool
   default     = false
 }
@@ -93,7 +99,7 @@ variable "private_zone_id" {
 }
 
 variable "private_zone_name" {
-  description = "Private hosted zone name"
+  description = "Private hosted zone domain name"
   type        = string
   default     = ""
 }

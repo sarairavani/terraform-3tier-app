@@ -2,24 +2,24 @@
 # CloudTrail module variables
 ############################################################
 
-variable "name" {
-  description = "Name of the CloudTrail"
+variable "trail_name" {
+  description = "Name of the CloudTrail trail"
   type        = string
 }
 
 variable "s3_bucket_name" {
-  description = "S3 bucket for storing CloudTrail logs"
+  description = "S3 bucket name for storing CloudTrail logs"
   type        = string
 }
 
 variable "include_global_service_events" {
-  description = "Whether to include global service events"
+  description = "Whether to include global service events (IAM, STS, etc.)"
   type        = bool
   default     = true
 }
 
 variable "is_multi_region_trail" {
-  description = "Enable multi-region CloudTrail"
+  description = "Enable multi-region CloudTrail to capture events from all AWS regions"
   type        = bool
   default     = true
 }
@@ -31,13 +31,13 @@ variable "enable_logging" {
 }
 
 variable "kms_key_id" {
-  description = "KMS key for encrypting CloudTrail logs"
+  description = "KMS key ARN for encrypting CloudTrail logs (leave empty to disable encryption"
   type        = string
   default     = ""
 }
 
 variable "common_tags" {
-  description = "Common tags for CloudTrail"
+  description = "Common tags to apply to CloudTrail resources"
   type        = map(string)
   default     = {}
 }

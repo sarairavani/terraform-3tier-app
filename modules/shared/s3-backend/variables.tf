@@ -1,17 +1,17 @@
-variable "bucket_name" {
-  description = "Name of the S3 bucket to store Terraform state"
+variable "state_bucket_name" {
+  description = "Name of the S3 bucket to store Terraform state files"
   type        = string
 }
 
 variable "tags" {
   description = "Tags to apply to the S3 bucket"
   type        = map(string)
-  default     =  { 
+  default     = { 
            Environment = "dev"}
 }
 
 variable "encryption_type" {
-  description = "Type of server-side encryption: sse-s3 (default) or sse-kms"
+  description = "Type of server-side encryption: sse-s3 (AES256) or sse-kms"
   type        = string
   default     = "sse-s3"
   validation {
@@ -21,7 +21,7 @@ variable "encryption_type" {
 }
 
 variable "kms_key_id" {
-  description = "KMS key ID to use if encryption_type is sse-kms"
+  description = "KMS key ID to use for encryption when encryption_type is sse-kms"
   type        = string
   default     = ""
 }

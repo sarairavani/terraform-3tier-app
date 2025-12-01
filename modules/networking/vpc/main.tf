@@ -1,6 +1,6 @@
 
 resource "aws_vpc" "this" {
-  cidr_block           = var.cidr_block
+  cidr_block           = var.vpc.cidr_block
 
   # Enables private DNS hostnames for instances within the VPC
   enable_dns_hostnames = true
@@ -11,7 +11,7 @@ resource "aws_vpc" "this" {
   tags = merge(
     var.tags,
     {
-      Name = var.name
+      Name = var.vpc_name
     }
   )
 }

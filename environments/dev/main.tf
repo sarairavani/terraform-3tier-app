@@ -20,7 +20,7 @@ provider "aws" {
 module "vpc" {
   source     = "../../modules/networking/vpc"
   name       = "dev-vpc"
-  cidr_block = var.cidr_block
+  cidr_block = var.vpc_cidr_block
  
 }
 # -----------------------------------------------------
@@ -195,8 +195,8 @@ module "security_groups" {
 # ----------------------------------------------------------
 module "kms" {
   source      = "../../modules/security/kms"
-  name        = var.kms_name
-  alias_name  = var.alias_name
+  key_name    = var.kms_key_name
+  key_alias   = var.kms_key_alias
   environment = var.environment
 
   common_tags = var.common_tags
@@ -213,7 +213,7 @@ module "secrets_manager" {
   environment = var.environment
   kms_key_id  = var.kms_key_id
 
-  secret_string = jsonencode({
+  secret_value = jsonencode({
     username = var.db_username
     password = var.db_password
   })
@@ -362,7 +362,7 @@ module "autoscaling" {
 module "alb" {
   source = "../../modules/compute/alb"
 
-  env_name          = var.env_name
+  env_name          = var.environment
   vpc_id            = var.vpc_id
   public_subnet_ids = var.public_subnet_ids
   alb_sg_ids        = var.alb_sg_ids
@@ -393,22 +393,22 @@ module "alb" {
 # ----------------------------------------------------------
 module "bastion" {
   source              = "../../modules/compute/bastion-host"
-  name                = "myapp"
+  bastion_name_prefix ="myapp"
   environment         = var.environment
 
   vpc_id              = var.vpc_id
   subnet_id           = var.private_subnet_ids[0]
   subnet_ids          = var.private_subnet_ids
 
-  ami_id              = var.bastion_ami
-  instance_type       = var.instance_type
-  associate_public_ip = var.associate_public_ip
-  allocate_eip        = var.allocate_eip
+  bastion_ami_id        = var.bastion_ami
+  bastion_instance_type = var.instance_type
+  associate_public_ip   = var.associate_public_ip
+  allocate_elastic_ip   = var.allocate_eip
 
-  region              = var.region
+  region              = var.aws.region
   common_tags         = var.common_tags
 
-  enable_route53      = var.enable_route53
+  enable_route53        = var.enable_route53
 }
 ############################################################
 # wire web-tier and app-tier modules
@@ -560,18 +560,18 @@ tags = var.tags
 #   - Alarms → attaches SNS actions to CloudWatch alarms
 ##################################################################
 
-# -------------
+# ----------------------
 # SNS
-# -------------
+# ----------------------
 module "sns" {
-  source             = "../../modules/monitoring/sns"
-  name               = "dev-alerts"
-  email_subscription = var.sns_emails
-  tags               = var.common_tags
+  source              = "../../modules/monitoring/sns"
+  name                = "dev-alerts"
+  email_subscriptions = var.sns_emails
+  tags                = var.common_tags
 }
-# -----------
+# --------------------
 # Cloudwatch
-# -----------
+# --------------------
 module "cloudwatch" {
   source    = "../../modules/monitoring/cloudwatch"
   environment = var.environment
@@ -584,6 +584,6 @@ module "cloudwatch" {
 # ----------------------------------
 module "alarms" {
   source         = "../../modules/monitoring/alarms"
-  sns_topic_arn  = module.sns.this.arn
+  sns_topic_arn  = module.sns.sns_topic_arn
   alarm_actions  = [module.cloudwatch.alarms...]
 }

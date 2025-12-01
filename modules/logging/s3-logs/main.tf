@@ -4,7 +4,7 @@
 
 resource "aws_s3_bucket" "this" {
   # Name of the bucket
-  bucket = var.name
+  bucket = var.bucket_name
 
   # Private ACL ensures bucket is not public
   acl = "private"
@@ -54,7 +54,7 @@ resource "aws_s3_bucket" "this" {
   # Optional: store access logs in another bucket
   ##########################################################
   logging {
-    target_bucket = var.logging_bucket_name != "" ? var.logging_bucket_name : null
+    target_bucket = var.access_logs_bucket_name != "" ? var.access_logs_bucket_name :
     target_prefix = "logs/"
   }
 
@@ -71,6 +71,6 @@ resource "aws_s3_bucket" "this" {
   # Tags
   # Merge common tags with a Name tag
   ##########################################################
-  tags = merge(var.common_tags, { Name = var.name })
+  tags = merge(var.common_tags, { Name = var.bucket_name })
 }
 

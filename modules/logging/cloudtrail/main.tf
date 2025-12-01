@@ -6,7 +6,7 @@
 
 resource "aws_cloudtrail" "this" {
   # Name of the trail
-  name = var.name
+  name = var.trail_name
 
   # S3 bucket to store CloudTrail logs
   # If empty, we will create a bucket dynamically (see below)
@@ -26,7 +26,7 @@ resource "aws_cloudtrail" "this" {
   kms_key_id = var.kms_key_id != "" ? var.kms_key_id : null
 
   # Tags for cost allocation and resource management
-  tags = merge(var.common_tags, { Name = var.name })
+  tags = merge(var.common_tags, { Name = var.trail_name })
 }
 
 ############################################################

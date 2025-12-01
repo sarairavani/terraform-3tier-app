@@ -7,11 +7,11 @@ variable "aws_region" {
 }
 
 variable "environment" {
-  description = "Deployment environment name"
+  description = "Environment name (e.g., dev, staging, prod) used for resource naming"
   default     = "dev"
 }
 variable "project_name" {
-  description = ""
+  description = "Name of the project, used for resource naming and tagging""
   default     = "terraform-3tier-app"
 }
 
@@ -44,6 +44,7 @@ variable "common_tags" {
 ############################################################
  
 variable "vpc_id" {
+  description = "VPC ID where the ALB will be deployed"
   type        = string
   default     = "vpc-1234567890abcdef"
 }
@@ -203,12 +204,13 @@ EOT
 # KMS
 #######################################################
 
-variable "kms_name" {
-  description = "KMS key name for encryption"
+variable "kms_key_name" {
+  description = "Name of the KMS key for encryption"
   default     = "dev-3tier-kms"
 }
-variable "alias_name"{
-  description = "kms alias name"
+
+variable "kms_key_alias"{
+  description = "Alias name for the KMS key"
   default     = "dev-3tier-kms"
 }
 
@@ -381,39 +383,45 @@ variable "app_tg" {
 ############################################################
 # Bastion Host
 ############################################################
-variable "name" {
+variable "bastion_name_prefix" {
   type        = string
-  description = "Base name for resources"
+  description = "Name prefix for bastion host resources"
   default     = "myapp"
 }
 
 variable "private_subnet_ids" {
   type        = list(string)
+  description = "List of private subnet IDs for bastion host deployment"
   default     = ["subnet-11111111", "subnet-22222222"]
 }
 
 variable "bastion_ami" {
   type        = string
+  description = "AMI ID for the bastion host instance"
   default     = "ami-0abcdef1234567890"
 }
 
 variable "instance_type" {
   type        = string
+  description = "EC2 instance type for the bastion host"
   default     = "t3.micro"
 }
 
 variable "associate_public_ip" {
   type        = bool
+  description = "Whether to associate a public IP address with the bastion host"
   default     = false
 }
 
 variable "allocate_eip" {
   type        = bool
+  description = "Whether to allocate an Elastic IP for the bastion host"
   default     = false
 }
 
 variable "enable_route53" {
   type        = bool
+  description = "Whether to create Route53 DNS records for the bastion host"
   default     = false
 }
 
