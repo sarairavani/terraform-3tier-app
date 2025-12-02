@@ -2,11 +2,22 @@
 # ALB Module Variables
 ############################################################
 
-variable "env_name" {}
-variable "vpc_id" {}
-variable "public_subnet_ids" { type = list(string) }
-variable "alb_sg_ids" { type = list(string) }
-
+variable "environment_name" {
+  description = "Environment name for resource naming"
+  type        = string
+}
+variable "vpc_id" {
+  description = "VPC ID for the ALB"
+  type        = string
+}
+variable "public_subnet_ids" {
+  description = "List of public subnet IDs for ALB"
+  type        = list(string)
+}
+variable "alb_security_group_ids" {
+  description = "List of security group IDs for ALB"
+  type        = list(string)
+}
 variable "internal" {
   type    = bool
   default = false
@@ -68,11 +79,11 @@ variable "enable_maintenance" {
 
 variable "web_tg" {
   type = object({
-    port                   = number
-    protocol               = string
-    target_type            = string
-    stickiness_enabled     = bool
-    stickiness_duration    = number
+    port                = number
+    protocol            = string
+    target_type         = string
+    stickiness_enabled  = bool
+    stickiness_duration = number
     health = object({
       path                = string
       matcher             = string
@@ -86,11 +97,11 @@ variable "web_tg" {
 
 variable "app_tg" {
   type = object({
-    port                   = number
-    protocol               = string
-    target_type            = string
-    stickiness_enabled     = bool
-    stickiness_duration    = number
+    port                = number
+    protocol            = string
+    target_type         = string
+    stickiness_enabled  = bool
+    stickiness_duration = number
     health = object({
       path                = string
       matcher             = string

@@ -31,7 +31,7 @@ variable "eni_ids" {
   type        = list(string)
   default     = []
 
-
+}
 variable "enabled" {
   description = "Enable or disable flow logs"
   type        = bool

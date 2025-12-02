@@ -24,10 +24,18 @@ variable "target_group_arn" {
   type        = string
 }
 
-variable "min_size" { type = number; default = 1 }
-variable "max_size" { type = number; default = 3 }
-variable "desired_capacity" { type = number; default = 1 }
-
+variable "min_size" {
+  type    = number
+  default = 1
+}
+variable "max_size" {
+  type    = number
+  default = 3
+}
+variable "desired_capacity" {
+  type    = number
+  default = 1
+}
 variable "common_tags" {
   description = "Common tags"
   type        = map(string)

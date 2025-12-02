@@ -21,10 +21,11 @@ output "bastion_ssm_role_arn" {
   description = "IAM role ARN attached to bastion for SSM access"
   value       = aws_iam_role.ssm_role.arn
 }
+output "bastion_elastic_ips" {
+  description = "Elastic IPs for all bastion hosts (only if allocated)"
 
-output "bastion_elastic_ip" {
-  description = "Elastic IP associated with bastion (if allocated)"
-  value       = aws_eip.bastion_eip[0].public_ip
-  condition   = (var.allocate_elastic_ip && var.associate_public_ip) ? aws_eip.bastion_eip[0].public_ip : null
+  value = var.allocate_elastic_ip && var.associate_public_ip ? {
+    for k, eip in aws_eip.bastion_eip :
+    k => eip.public_ip
+  } : {}
 }
-

@@ -57,6 +57,13 @@ variable "allocate_eip" {
   default     = false
 }
 
+# Alias for backward compatibility
+variable "allocate_elastic_ip" {
+  description = "Alias for allocate_eip - Allocate an Elastic IP for the bastion host"
+  type        = bool
+  default     = false
+}
+
 variable "user_data" {
   description = "Custom user data for bastion instance (base64 encoded or empty to use default)"
   type        = string

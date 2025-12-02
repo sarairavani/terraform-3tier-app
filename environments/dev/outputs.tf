@@ -9,7 +9,9 @@ output "environment" {
 output "region" {
   description = "AWS region for this environment"
   value       = var.aws_region
-}############################
+}
+
+############################
 # VPC Outputs
 ############################
 output "vpc_id" {
@@ -19,7 +21,7 @@ output "vpc_id" {
 
 output "vpc_cidr_block" {
   description = "The CIDR block of the VPC"
-  value       = var.cidr_block
+  value       = var.vpc_cidr_block
 }
 
 ############################
@@ -27,7 +29,7 @@ output "vpc_cidr_block" {
 ############################
 output "flow_logs_status" {
   description = "Indicates if VPC Flow Logs are enabled"
-  value       = module.flow_logs.enabled
+  value       = aws_flow_log.my_flow_log ? true : false
 }
 
 output "flow_logs_vpc_id" {

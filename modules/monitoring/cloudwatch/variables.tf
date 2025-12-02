@@ -9,13 +9,13 @@ variable "environment" {
 
 variable "metrics" {
   description = "List of AWS services/metrics to monitor"
-  type        = list(object({
-    namespace  = string
-    metric_name = string
-    statistic  = string
-    threshold  = number
-    period     = number
-    evaluation_periods = number
+  type = list(object({
+    namespace           = string
+    metric_name         = string
+    statistic           = string
+    threshold           = number
+    period              = number
+    evaluation_periods  = number
     comparison_operator = string
   }))
 }

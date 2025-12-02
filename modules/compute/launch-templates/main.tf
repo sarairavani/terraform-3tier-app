@@ -50,7 +50,7 @@ resource "aws_launch_template" "this" {
     tags = merge(
       var.common_tags,
       {
-        "Name"       = "${each.key}-${var.environment}"
+        "Name"        = "${each.key}-${var.environment}"
         "Environment" = var.environment
         "Tier"        = each.value.tier
       }

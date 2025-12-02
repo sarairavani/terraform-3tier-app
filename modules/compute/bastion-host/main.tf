@@ -17,13 +17,13 @@ resource "aws_iam_role" "ssm_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = { Service = "ec2.amazonaws.com" }
-        Action = "sts:AssumeRole"
+        Action    = "sts:AssumeRole"
       }
     ]
   })
-  
+
   tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-ssm-role" })
 }
 
@@ -61,16 +61,16 @@ resource "aws_security_group" "bastion_sg" {
 
 # EC2 instance (bastion)
 resource "aws_instance" "bastion" {
-  ami                    = var.bastion_ami_id
-  instance_type          = var.bastion_instance_type
-  key_name               = var.key_name
-  subnet_id              = var.subnet_id
-  iam_instance_profile   = aws_iam_instance_profile.ssm_profile.name
+  ami                         = var.bastion_ami_id
+  instance_type               = var.bastion_instance_type
+  key_name                    = var.key_name
+  subnet_id                   = var.subnet_id
+  iam_instance_profile        = aws_iam_instance_profile.ssm_profile.name
   associate_public_ip_address = var.associate_public_ip
 
   vpc_security_group_ids = concat(
-    [aws_security_group.bastion_sg.id], 
-     var.additional_security_group_ids
+    [aws_security_group.bastion_sg.id],
+    var.additional_security_group_ids
   )
 
   # Ensure SSM agent is installed
@@ -81,11 +81,11 @@ resource "aws_instance" "bastion" {
     Environment = var.environment
     Role        = "bastion"
   })
-  
- # Enable detailed monitoring (CloudWatch)
+
+  # Enable detailed monitoring (CloudWatch)
   monitoring = true
 
- # Root volume
+  # Root volume
   root_block_device {
     volume_size = var.root_volume_size_gb
     volume_type = "gp3"
@@ -104,21 +104,23 @@ resource "aws_instance" "bastion" {
 
 resource "aws_eip" "bastion_eip" {
   for_each = var.allocate_elastic_ip && var.associate_public_ip ? { for i, inst in aws_instance.bastion : i => inst } : {}
-  instance = aws_instance.bastion.id
-  vpc      = true
+  instance = each.value.id
+  domain   = "vpc"
 
-  tags = merge(var.common_tags, { Name = "${var.bastion_name_prefix}-bastion-eip${each.key}}
+  tags = merge(
+    var.common_tags,
+    { Name = "${var.bastion_name_prefix}-bastion-eip-${each.key}" }
+  )
 }
-
 ############################################################
 # VPC Endpoints for SSM (Private-Only Bastion Best Practice)
 ############################################################
 
 resource "aws_vpc_endpoint" "ssm" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.aws.region}.ssm"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
+  vpc_id             = var.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
@@ -126,10 +128,10 @@ resource "aws_vpc_endpoint" "ssm" {
 }
 
 resource "aws_vpc_endpoint" "ssmmessages" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.aws_region}.ssmmessages"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
+  vpc_id             = var.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true
@@ -137,10 +139,10 @@ resource "aws_vpc_endpoint" "ssmmessages" {
 }
 
 resource "aws_vpc_endpoint" "ec2messages" {
-  vpc_id            = var.vpc_id
-  service_name      = "com.amazonaws.${var.aws_region}.ec2messages"
-  vpc_endpoint_type = "Interface"
-  subnet_ids        = var.subnet_id != null ? [var.subnet_id] : []
+  vpc_id             = var.vpc_id
+  service_name       = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = var.subnet_id != null ? [var.subnet_id] : []
   security_group_ids = [aws_security_group.bastion_sg.id]
 
   private_dns_enabled = true

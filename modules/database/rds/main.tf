@@ -24,7 +24,7 @@ resource "aws_db_instance" "this" {
 
   tags = merge(
     var.tags,
-    { Name =  var.instance_identifier }
+    { Name = var.instance_identifier }
   )
 
   lifecycle {

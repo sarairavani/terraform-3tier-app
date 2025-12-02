@@ -9,7 +9,6 @@ resource "aws_cloudtrail" "this" {
   name = var.trail_name
 
   # S3 bucket to store CloudTrail logs
-  # If empty, we will create a bucket dynamically (see below)
   s3_bucket_name = var.s3_bucket_name
 
   # Include global service events like IAM, STS, etc.
@@ -22,7 +21,6 @@ resource "aws_cloudtrail" "this" {
   enable_logging = var.enable_logging
 
   # Optional KMS key for encrypting CloudTrail logs
-  # If kms_key_id is empty string, set null
   kms_key_id = var.kms_key_id != "" ? var.kms_key_id : null
 
   # Tags for cost allocation and resource management
@@ -37,7 +35,7 @@ resource "aws_cloudtrail" "this" {
 
 resource "aws_s3_bucket" "cloudtrail_bucket" {
   # If s3_bucket_name is empty, create one bucket with key = "<trail_name>-logs"
-  for_each = var.s3_bucket_name == "" ? { "${var.name}-logs" = var.name } : {}
+  for_each = var.s3_bucket_name == "" ? { "${var.trial_name}-logs" = var.trail_name } : {}
 
   # Bucket name
   bucket = each.key

@@ -1,6 +1,6 @@
 ############################################################
 # Environment Settings
-############;################################################
+############################################################
 variable "aws_region" {
   description = "AWS region for this environment"
   default     = "ca-central-1"
@@ -11,17 +11,13 @@ variable "environment" {
   default     = "dev"
 }
 variable "project_name" {
-  description = "Name of the project, used for resource naming and tagging""
+  description = "Name of the project, used for resource naming and tagging"
   default     = "terraform-3tier-app"
 }
 
 variable "cidr_block" {
   description = "CIDR block for the VPC in this environment"
   default     = "10.0.0.0/16"
-}
-variable "log_destination" {
-  description = "ARN of the destination for VPC Flow Logs (S3, CloudWatch, or Kinesis)"
-  default     = "arn:aws:s3:::my-vpc-flow-logs"
 }
 variable "availability_zones" {
   description = "List of availability zones to use"
@@ -42,7 +38,7 @@ variable "common_tags" {
 ############################################################
 # VPC Subnets
 ############################################################
- 
+
 variable "vpc_id" {
   description = "VPC ID where the ALB will be deployed"
   type        = string
@@ -66,25 +62,27 @@ variable "db_private_subnet_cidrs" {
   type        = list(string)
   default     = ["10.0.160.0/20", "10.0.176.0/20"]
 }
+variable "admin_ip" {
+  description = "Admin IP"
+  type        = string
+}
+
+variable "vpc_cidr_block" {
+  description = "VPC CIDR block"
+  type        = string
+}
+
 ##############################################################
 # Security Groups Map
 ##############################################################
 variable "sg_map" {
-  description = <<EOT
-Map of security groups for 3-tier architecture in dev environment.
-
-Tiers:
-  - web_sg: Web Tier, public
-  - app_sg: Application Tier, private
-  - db_sg: Database Tier, private
-  - bastion_sg: Bastion host for SSH access
-EOT
+  description = "Map of security groups for the environment"
   type = map(object({
     name        = string
     tier        = string
     vpc_id      = string
     description = string
-    ingress     = object({
+    ingress = object({
       from_port       = number
       to_port         = number
       protocol        = string
@@ -100,106 +98,9 @@ EOT
       description = string
     })
   }))
-
-  default = {
-    web_sg = {
-      name        = "web-sg-dev"
-      tier        = "web"
-      vpc_id      = var.vpc_id
-      description = "Security group for Web Tier"
-
-      ingress = {
-        from_port       = 80
-        to_port         = 80
-        protocol        = "tcp"
-        cidr_blocks     = ["0.0.0.0/0"]
-        security_groups = []
-        description     = "Allow HTTP from anywhere"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-
-    app_sg = {
-      name        = "app-sg-dev"
-      tier        = "app"
-      vpc_id      = var.vpc_id
-      description = "Security group for App Tier"
-
-      ingress = {
-        from_port       = 8080
-        to_port         = 8080
-        protocol        = "tcp"
-        cidr_blocks     = []
-        security_groups = [ "web_sg" ]  # Reference by key, resolved in main.tf
-        description     = "Allow traffic from Web Tier only"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-
-    db_sg = {
-      name        = "db-sg-dev"
-      tier        = "db"
-      vpc_id      = var.vpc_id
-      description = "Security group for DB Tier"
-
-      ingress = {
-        from_port       = 3306
-        to_port         = 3306
-        protocol        = "tcp"
-        cidr_blocks     = []
-        security_groups = ["app_sg"]  # Reference by key
-        description     = "Allow MySQL from App Tier only"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-
-    bastion_sg = {
-      name        = "bastion-sg-dev"
-      tier        = "bastion"
-      vpc_id      = var.vpc_id
-      description = "Security group for Bastion Host"
-
-      ingress = {
-        from_port       = 22
-        to_port         = 22
-        protocol        = "tcp"
-        cidr_blocks     = [var.admin_ip]
-        security_groups = []
-        description     = "Allow SSH from admin IP"
-      }
-
-      egress = {
-        from_port   = 0
-        to_port     = 0
-        protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-        description = "Allow all outbound"
-      }
-    }
-  }
-
+  default = null
 }
+
 ########################################################
 # KMS
 #######################################################
@@ -209,7 +110,7 @@ variable "kms_key_name" {
   default     = "dev-3tier-kms"
 }
 
-variable "kms_key_alias"{
+variable "kms_key_alias" {
   description = "Alias name for the KMS key"
   default     = "dev-3tier-kms"
 }
@@ -232,7 +133,7 @@ variable "db_username" {
 variable "db_password" {
   description = "Database password for RDS"
   type        = string
-  default     = "ChangeMe123!" 
+  default     = "ChangeMe123!"
 }
 
 variable "secret_name" {
@@ -290,11 +191,6 @@ variable "db_ami" {
   default     = "ami-0123456789abcdef2"
 }
 
-variable "bastion_ami" {
-  description = "AMI ID for Bastion host"
-  default     = "ami-0abcdef1234567890"
-}
-
 variable "db_instance_type" {
   description = "Instance type for database tier"
   default     = "t3.medium"
@@ -304,8 +200,16 @@ variable "db_sg_id" {
   description = "Security group ID for database tier"
   default     = "sg-db-tier-id"
 }
-variable "bastion_type"      { default = "t3.micro" }
-variable "web_instance_type" { default = "t3.micro" }
+
+variable "bastion_sg_id" {
+  description = "Security group ID for bastion host"
+  default     = "sg-bastion-id"
+}
+
+variable "bastion_type" {
+  description = "Instance type for bastion host"
+  default     = "t3.micro"
+}
 
 ############################################################
 # Autoscaling
@@ -314,19 +218,19 @@ variable "web_instance_type" { default = "t3.micro" }
 variable "launch_template_ids" {
   description = "Launch template IDs from launch-template module"
   default = {
-    web = "lt-0abc123def4567890"  
+    web = "lt-0abc123def4567890"
     app = "lt-0abc123def4567891"
   }
 }
 
 variable "web_subnet_ids" {
   description = "Public subnets for Web tier"
-  default = ["subnet-0aaa111bbb222ccc0","subnet-0aaa111bbb222ccc1"]
+  default     = ["subnet-0aaa111bbb222ccc0", "subnet-0aaa111bbb222ccc1"]
 }
 
 variable "app_subnet_ids" {
   description = "Private subnets for App tier"
-  default = ["subnet-0aaa111bbb222ccc2","subnet-0aaa111bbb222ccc3"]
+  default     = ["subnet-0aaa111bbb222ccc2", "subnet-0aaa111bbb222ccc3"]
 }
 
 variable "app_target_group_arn" {
@@ -429,31 +333,43 @@ variable "enable_route53" {
 # web-tier and app-tier modules
 ############################################################
 
-# Launch template IDs come from modules/compute/launch-templates outputs
-variable "launch_template_ids" {
-  default = {
-    web = "lt-0exampleweb"
-    app = "lt-0exampleapp"
-  }
-}
+# Web-tier and App-tier Module Variables
+# --------------------------------------
+# variable "launch_template_ids" {
+#   description = "Launch template IDs for Web and App tiers"
+#   type        = map(string)
+#   default = {
+#     web = "lt-0exampleweb"
+#     app = "lt-0exampleapp"
+#   }
+# }
 
-# Subnets
-variable "web_subnet_ids" {
-  default = ["subnet-web-1", "subnet-web-2"]  # private subnets reachable by ALB
-}
-
-variable "app_subnet_ids" {
-  default = ["subnet-app-1", "subnet-app-2"]
-}
+# Subnets IDs
+# --------------------------------------
+# variable "web_subnet_ids" {
+#   description = "Private subnets for Web tier (reachable by ALB)"
+#   type        = list(string)
+#   default = ["subnet-web-1", "subnet-web-2"] 
+# }
+# 
+# variable "app_subnet_ids" {
+#   default = ["subnet-app-1", "subnet-app-2"]
+# }
 
 # Target groups (from ALB module outputs)
+# ---------------------------------------
 variable "web_target_group_arn" {
-  default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-web-tg/abcd"
+  description = "Private subnets for App tier"
+  type        = list(string)
+  default     = ["arn:aws:elasticloadbalancing:...:targetgroup/dev-web-tg/abcd"]
 }
 
-variable "app_target_group_arn" {
-  default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-app-tg/efgh"
-}
+# variable "app_target_group_arn" {
+#   description = "ARN of App tier Target Group"
+#   type        = string
+#   default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-app-tg/efgh"
+# }
+
 ############################################################
 # db-subnet-group and rds
 ###########################################################
@@ -471,12 +387,6 @@ variable "db_security_group_ids" {
   default     = ["sg-db-private"]
 }
 
-# Database master password
-variable "db_password" {
-  description = "Master password for the RDS database. Should be overridden in environment secrets."
-  type        = string
-  default     = "ChangeMe123!"
-}
 
 # KMS key ARN for encrypting RDS storage
 variable "db_kms_key_id" {
@@ -490,13 +400,6 @@ variable "db_name" {
   description = "Name of the initial database to create in RDS."
   type        = string
   default     = "mydb"
-}
-
-# RDS database username (optional, default)
-variable "db_username" {
-  description = "Username for RDS database admin user."
-  type        = string
-  default     = "admin"
 }
 
 # Backup retention period for RDS
@@ -590,54 +493,54 @@ variable "log_destination" {
 }
 
 variable "bucket_name" {
-type = string
-description = "Name of the S3 bucket for CloudTrail logs"
+  type        = string
+  description = "Name of the S3 bucket for CloudTrail logs"
 }
 
 
 variable "force_destroy" {
-type = bool
-default = false
-description = "Force destroy S3 bucket"
+  type        = bool
+  default     = false
+  description = "Force destroy S3 bucket"
 }
 
 
 variable "trail_name" {
-type = string
-description = "Name of the CloudTrail trail"
+  type        = string
+  description = "Name of the CloudTrail trail"
 }
 
 
 variable "enable_log_file_validation" {
-type = bool
-default = true
-description = "Enable file integrity validation"
+  type        = bool
+  default     = true
+  description = "Enable file integrity validation"
 }
 
 
 variable "is_multi_region_trail" {
-type = bool
-default = true
-description = "Whether CloudTrail is multi-region"
+  type        = bool
+  default     = true
+  description = "Whether CloudTrail is multi-region"
 }
 
 
 variable "enable_insight_selector" {
-type = bool
-default = true
-description = "Enable CloudTrail Insights"
+  type        = bool
+  default     = true
+  description = "Enable CloudTrail Insights"
 }
 
 
 variable "sns_topic_arn" {
-type = string
-default = null
-description = "SNS topic for notifications"
+  type        = string
+  default     = null
+  description = "SNS topic for notifications"
 }
 
 
 variable "tags" {
-type = map(string)
-default = {}
-description = "Common tags for resources"
+  type        = map(string)
+  default     = {}
+  description = "Common tags for resources"
 }

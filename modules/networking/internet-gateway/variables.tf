@@ -20,7 +20,7 @@ EOT
     vpc_id           = string
     environment_name = string
   }))
-   default = {}
+  default = {}
 }
 
 variable "common_tags" {

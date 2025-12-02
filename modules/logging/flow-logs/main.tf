@@ -17,7 +17,7 @@
 # --------------------------
 resource "aws_flow_log" "vpc" {
   # Create flow logs only if module is enabled
-  for_each        = length(var.vpc_ids) > 0 ? toset(var.vpc_ids) : []
+  for_each = length(var.vpc_ids) > 0 ? toset(var.vpc_ids) : []
 
   vpc_id          = each.value
   traffic_type    = var.traffic_type
@@ -38,7 +38,7 @@ resource "aws_flow_log" "vpc" {
 # --------------------------
 resource "aws_flow_log" "subnet" {
   # Create flow logs only if module is enabled
-  for_each        = length(var.subnet_ids) > 0 ? toset(var.subnet_ids) : []
+  for_each = length(var.subnet_ids) > 0 ? toset(var.subnet_ids) : []
 
   subnet_id       = each.value
   traffic_type    = var.traffic_type
@@ -58,14 +58,19 @@ resource "aws_flow_log" "subnet" {
 # ENI Flow Logs
 # --------------------------
 resource "aws_flow_log" "eni" {
-  for_each = length(var.eni_ids) > 0 ? toset(var.eni_ids) : []
+  for_each = var.eni_ids
 
-  log_destination      = var.log_destination
-  iam_role_arn         = var.iam_role_arn
-  traffic_type         = var.traffic_type
-  log_destination_type = "s3"
-  resource_id          = each.key
-  resource_type        = "NetworkInterface"
-  enabled              = var.enabled
-  tags                 = merge(var.common_tags, { ResourceType = "ENI" })
+  log_destination_type = "cloud-watch-logs"
+  log_group_name       = var.log_group_name
+  traffic_type         = "ALL"
+
+  subnet_id       = null
+  vpc_id          = null
+  iam_role_arn    = null
+  eni_id          = each.value
+
+  tags = merge(var.common_tags, {
+    FlowType = "ENI"
+  })
 }
+

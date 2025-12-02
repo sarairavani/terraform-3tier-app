@@ -6,8 +6,8 @@ variable "state_bucket_name" {
 variable "tags" {
   description = "Tags to apply to the S3 bucket"
   type        = map(string)
-  default     = { 
-           Environment = "dev"}
+  default = {
+  Environment = "dev" }
 }
 
 variable "encryption_type" {
