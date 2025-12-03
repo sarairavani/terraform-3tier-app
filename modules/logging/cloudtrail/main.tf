@@ -32,28 +32,30 @@ resource "aws_cloudtrail" "this" {
 # This bucket is only created if s3_bucket_name variable is empty.
 # Ensures logs are encrypted and private.
 ############################################################
-
 resource "aws_s3_bucket" "cloudtrail_bucket" {
-  # If s3_bucket_name is empty, create one bucket with key = "<trail_name>-logs"
-  for_each = var.s3_bucket_name == "" ? { "${var.trial_name}-logs" = var.trail_name } : {}
+  for_each = var.s3_bucket_name == "" ? { "${var.trail_name}-logs" = var.trail_name } : {}
 
-  # Bucket name
   bucket = each.key
 
-  # Private ACL to prevent public access
-  acl = "private"
+  tags = merge(var.common_tags, { Name = each.key })
+}
 
-  # Server-side encryption configuration
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        # Use AES256 encryption
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_acl" "cloudtrail_bucket_acl" {
+  for_each = aws_s3_bucket.cloudtrail_bucket
+
+  bucket = each.value.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail_bucket_sse" {
+  for_each = aws_s3_bucket.cloudtrail_bucket
+
+  bucket = each.value.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
-
-  # Apply tags, merge common tags with Name
-  tags = merge(var.common_tags, { Name = each.key })
 }
 

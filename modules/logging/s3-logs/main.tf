@@ -4,13 +4,16 @@
 resource "aws_s3_bucket" "this" {
   bucket        = var.bucket_name
   force_destroy = var.force_destroy
-  acl           = "private"
 
   tags = merge(var.common_tags, { Name = var.bucket_name })
 
   versioning {
     enabled = var.enable_versioning
   }
+}
+resource "aws_s3_bucket_acl" "this" {
+  bucket = aws_s3_bucket.this.id
+  acl    = "private"
 }
 
 ##########################################################

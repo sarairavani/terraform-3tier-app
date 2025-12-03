@@ -19,10 +19,11 @@ resource "aws_flow_log" "vpc" {
   # Create flow logs only if module is enabled
   for_each = length(var.vpc_ids) > 0 ? toset(var.vpc_ids) : []
 
-  vpc_id          = each.value
-  traffic_type    = var.traffic_type
-  log_destination = var.log_destination
-  iam_role_arn    = var.iam_role_arn
+  vpc_id               = each.value
+  traffic_type         = var.traffic_type
+  log_destination_type = "cloud-watch-logs"
+  log_destination      = var.log_destination
+  iam_role_arn         = var.iam_role_arn
 
   # Merge common tags with specific name tag
   tags = merge(
@@ -40,10 +41,11 @@ resource "aws_flow_log" "subnet" {
   # Create flow logs only if module is enabled
   for_each = length(var.subnet_ids) > 0 ? toset(var.subnet_ids) : []
 
-  subnet_id       = each.value
-  traffic_type    = var.traffic_type
-  log_destination = var.log_destination
-  iam_role_arn    = var.iam_role_arn
+  subnet_id            = each.value
+  traffic_type         = var.traffic_type
+  log_destination_type = "cloud-watch-logs"
+  log_destination      = var.log_destination
+  iam_role_arn         = var.iam_role_arn
 
   # Merge common tags with specific name tag
   tags = merge(
@@ -58,18 +60,14 @@ resource "aws_flow_log" "subnet" {
 # ENI Flow Logs
 # --------------------------
 resource "aws_flow_log" "eni" {
-  for_each = var.eni_ids
+  for_each = toset(var.eni_ids)
 
-  log_destination_type = "cloud-watch-logs"
-  log_group_name       = var.log_group_name
   traffic_type         = "ALL"
+  log_destination_type = "cloud-watch-logs"
+  log_destination      = var.log_destination
+  eni_id               = each.value
 
-  subnet_id       = null
-  vpc_id          = null
-  iam_role_arn    = null
-  eni_id          = each.value
-
-  tags = merge(var.common_tags, {
+  tags = merge(var.tags, {
     FlowType = "ENI"
   })
 }
