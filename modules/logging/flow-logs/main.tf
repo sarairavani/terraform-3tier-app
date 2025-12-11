@@ -12,13 +12,18 @@
 # - enabled: Boolean flag to enable/disable flow logs.
 # ============================================================
 
+locals {
+  vpc_map = { for idx, v in var.vpc_ids : "vpc${idx}" => v }
+  subnet_map = { for idx, v in var.subnet_ids : "subnet${idx}" => v }
+}
+
 # --------------------------
 # VPC Flow Logs
 # --------------------------
 resource "aws_flow_log" "vpc" {
   # Create flow logs only if module is enabled
-  for_each = length(var.vpc_ids) > 0 ? toset(var.vpc_ids) : []
-
+  for_each = local.vpc_map
+  
   vpc_id               = each.value
   traffic_type         = var.traffic_type
   log_destination_type = "cloud-watch-logs"
@@ -39,7 +44,7 @@ resource "aws_flow_log" "vpc" {
 # --------------------------
 resource "aws_flow_log" "subnet" {
   # Create flow logs only if module is enabled
-  for_each = length(var.subnet_ids) > 0 ? toset(var.subnet_ids) : []
+  for_each = local.subnet_map
 
   subnet_id            = each.value
   traffic_type         = var.traffic_type

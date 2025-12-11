@@ -36,6 +36,12 @@ variable "desired_capacity" {
   type    = number
   default = 2
 }
+variable "app_target_group_arn" {
+  description = "ARN(s) of App Tier Target Group for ALB"
+  type        = list(string)        
+  default     = ["arn:aws:elasticloadbalancing:placeholder"]
+}
+
 variable "common_tags" {
   description = "Common tags"
   type        = map(string)

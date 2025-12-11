@@ -21,7 +21,8 @@ resource "aws_instance" "this" {
 
   iam_instance_profile = each.value.iam_instance_profile
 
-  user_data = base64encode(each.value.user_data)
+  user_data_base64 = base64encode(each.value.user_data)
+
 
   associate_public_ip_address = each.value.associate_public_ip
 

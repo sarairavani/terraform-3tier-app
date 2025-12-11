@@ -29,7 +29,7 @@ output "vpc_cidr_block" {
 ############################
 output "flow_logs_status" {
   description = "Indicates if VPC Flow Logs are enabled"
-  value       = aws_flow_log.my_flow_log ? true : false
+  value       = length(module.flow_logs_subnets.flow_log_id) > 0
 }
 
 output "flow_logs_vpc_id" {

@@ -21,7 +21,7 @@ module "vpc" {
   source         = "../../modules/networking/vpc"
   vpc_name       = "dev-vpc"
   vpc_cidr_block = var.vpc_cidr_block
-# common_tags    = var.common_tags
+  # common_tags    = var.common_tags
 
 }
 # -----------------------------------------------------
@@ -44,7 +44,11 @@ module "internet_gateway" {
   source = "../../modules/networking/internet-gateway"
 
   vpc_map = {
-    "dev" = {
+    az1 = {
+      vpc_id           = module.vpc.vpc_id
+      environment_name = var.environment
+    }
+    az2 = {
       vpc_id           = module.vpc.vpc_id
       environment_name = var.environment
     }
@@ -360,7 +364,7 @@ module "autoscaling" {
       desired_capacity   = 2
       launch_template_id = var.launch_template_ids["app"]
       subnet_ids         = var.app_subnet_ids
-      target_group_arn   = var.app_target_group_arn
+      target_group_arn   = null
     }
   }
 
@@ -551,39 +555,42 @@ resource "aws_iam_role_policy" "flow_logs" {
 # VPC Flow Logs Module
 # Captures traffic logs for all VPC-level network activity.
 module "flow_logs_vpc" {
-  source          = "../../modules/logging/flow-logs"
-  vpc_ids         = module.vpc.vpc_id
-  log_destination = var.log_destination
-  iam_role_arn    = aws_iam_role.flow_logs.arn
-  traffic_type    = "ALL"
-  enabled         = true
-  tags            = var.common_tags
+  source               = "../../modules/logging/flow-logs"
+  vpc_ids = [module.vpc.vpc_id]
+  log_destination      = var.log_destination
+  log_destination_type = "cloud-watch-logs"
+  iam_role_arn         = aws_iam_role.flow_logs.arn
+  traffic_type         = "ALL"
+  enabled              = true
+  tags                 = var.common_tags
 }
 
 # Subnet Flow Logs Module
 module "flow_logs_subnets" {
-  source     = "../../modules/logging/flow-logs"
-  vpc_ids    = module.vpc.vpc_id
+  source  = "../../modules/logging/flow-logs"
+  vpc_ids = [module.vpc.vpc_id]
   subnet_ids = concat(module.subnets.public_subnet_ids,
     module.subnets.private_app_subnet_ids,
   module.subnets.private_db_subnet_ids)
-  log_destination = var.log_destination
-  iam_role_arn    = aws_iam_role.flow_logs.arn
-  traffic_type    = "ALL"
-  enabled         = true
-  tags            = var.common_tags
+  log_destination      = var.log_destination
+  log_destination_type = "cloud-watch-logs"
+  iam_role_arn         = aws_iam_role.flow_logs.arn
+  traffic_type         = "ALL"
+  enabled              = true
+  tags                 = var.common_tags
 }
 
 # ENI Flow Logs Module
 module "flow_logs_eni" {
-  source          = "../../modules/logging/flow-logs"
-  vpc_ids         = module.vpc.vpc_id
-  eni_ids         = ["eni-1234567890abcdef0", "eni-abcdef1234567890"]
-  log_destination = var.log_destination
-  iam_role_arn    = aws_iam_role.flow_logs.arn
-  traffic_type    = "ALL"
-  enabled         = true
-  tags            = var.common_tags
+  source               = "../../modules/logging/flow-logs"
+  vpc_ids = [module.vpc.vpc_id]
+  eni_ids              = ["eni-1234567890abcdef0", "eni-abcdef1234567890"]
+  log_destination      = var.log_destination
+  log_destination_type = "cloud-watch-logs"
+  iam_role_arn         = aws_iam_role.flow_logs.arn
+  traffic_type         = "ALL"
+  enabled              = true
+  tags                 = var.common_tags
 }
 # -----------------------------------------------------------------
 # S3 Logging Module
@@ -643,3 +650,7 @@ module "alarms" {
   sns_topic_arn = module.sns.sns_topic_arn
   alarm_actions = module.cloudwatch.alarms
 }
+# -----------------------------------------------
+resource "null_resource" "dummy" {}
+
+

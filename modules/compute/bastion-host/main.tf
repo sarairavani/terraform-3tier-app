@@ -74,7 +74,8 @@ resource "aws_instance" "bastion" {
   )
 
   # Ensure SSM agent is installed
-  user_data = file("${path.module}/scripts/ensure-ssm.sh")
+
+  user_data = file("${path.module}/scripts/ssm-agent-bootstrap.sh")
 
   tags = merge(var.common_tags, {
     Name        = "${var.bastion_name_prefix}-bastion-${var.environment}"
@@ -101,15 +102,15 @@ resource "aws_instance" "bastion" {
 # (only used if associate_public_ip = true 
 # and user wants stable public IP)
 ############################################################
-
 resource "aws_eip" "bastion_eip" {
-  for_each = var.allocate_elastic_ip && var.associate_public_ip ? { for i, inst in aws_instance.bastion : i => inst } : {}
-  instance = each.value.id
-  domain   = "vpc"
+  count = var.allocate_elastic_ip && var.associate_public_ip ? 1 : 0
+
+  instance = aws_instance.bastion.id
+#  vpc      = true
 
   tags = merge(
     var.common_tags,
-    { Name = "${var.bastion_name_prefix}-bastion-eip-${each.key}" }
+    { Name = "${var.bastion_name_prefix}-bastion-eip" }
   )
 }
 ############################################################

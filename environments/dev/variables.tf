@@ -25,6 +25,12 @@ variable "availability_zones" {
   default     = ["ca-central-1a", "ca-central-1b"]
 }
 
+variable "s3_bucket_name" {
+  description = "S3 bucket name for logs"
+  type        = string
+  default     = ""
+}
+
 variable "common_tags" {
   description = "Common tags applied to all resources in this environment"
   type        = map(string)
@@ -41,8 +47,20 @@ variable "common_tags" {
 
 variable "vpc_id" {
   description = "VPC ID where the ALB will be deployed"
-  type        = string
-  default     = "vpc-1234567890abcdef"
+  type        = list(string)
+  default     = ["vpc-placeholder"]
+}
+
+variable "vpc_ids" {
+  description = "List of VPC IDs"
+  type        = list(string)
+  default     = []
+}
+
+variable "subnet_ids" {
+  description = "List of Subnet IDs"
+  type        = list(string)
+  default     = ["subnet-placeholder1","subnet-placeholder2"]
 }
 
 variable "web_public_subnet_cidrs" {
@@ -70,6 +88,15 @@ variable "admin_ip" {
 variable "vpc_cidr_block" {
   description = "VPC CIDR block"
   type        = string
+}
+
+variable "internet_gateway_ids" {
+  description = "Map of internet gateway IDs per AZ"
+  type        = map(string)
+  default = {
+    az1 = "igw-abc123"
+    az2 = "igw-def456"
+  }
 }
 
 ##############################################################
@@ -100,6 +127,17 @@ variable "sg_map" {
   }))
   default = null
 }
+
+variable "additional_security_group_ids" {
+  type = list(string)
+  default = []
+}
+
+variable "enabled" {
+  type = bool
+  default = true
+}
+
 
 ########################################################
 # KMS
@@ -211,6 +249,12 @@ variable "bastion_type" {
   default     = "t3.micro"
 }
 
+variable "root_volume_size_gb" {
+  description = "Root volume size in GB"
+  type        = number
+  default     = 8
+}
+
 ############################################################
 # Autoscaling
 ############################################################
@@ -235,7 +279,8 @@ variable "app_subnet_ids" {
 
 variable "app_target_group_arn" {
   description = "ARN of App Tier Target Group for ALB"
-  default     = "arn:aws:elasticloadbalancing:ca-central-1:123456789012:targetgroup/app-tg/abcd1234efgh5678"
+  type        = list(string)
+  default     = ["arn:aws:elasticloadbalancing:ca-central-1:123456789012:targetgroup/app-tg/abcd1234efgh5678"]
 }
 ############################################################
 # ALB module
@@ -299,11 +344,24 @@ variable "private_subnet_ids" {
   default     = ["subnet-11111111", "subnet-22222222"]
 }
 
+variable "bastion_ami_id" {
+  description = "AMI ID for bastion host"
+  type        = string
+  default     = ""
+}
+
 variable "bastion_ami" {
   type        = string
   description = "AMI ID for the bastion host instance"
   default     = "ami-0abcdef1234567890"
 }
+
+variable "bastion_instance_type" {
+  description = "Instance type for the bastion host"
+  type        = string
+  default     = "t3.micro"
+}
+
 
 variable "instance_type" {
   type        = string
@@ -366,7 +424,7 @@ variable "web_target_group_arn" {
 
 # variable "app_target_group_arn" {
 #   description = "ARN of App tier Target Group"
-#   type        = string
+#   type        = list( string)
 #   default = "arn:aws:elasticloadbalancing:...:targetgroup/dev-app-tg/efgh"
 # }
 
@@ -510,6 +568,11 @@ variable "trail_name" {
   description = "Name of the CloudTrail trail"
 }
 
+variable "traffic_type" {
+  description = "Traffic type for VPC Flow Logs"
+  type        = string
+  default     = "ALL"
+}
 
 variable "enable_log_file_validation" {
   type        = bool

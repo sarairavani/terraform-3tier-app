@@ -31,6 +31,9 @@ resource "aws_route" "public_internet_route" {
   route_table_id         = each.value.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = var.internet_gateway_ids[each.key]
+# gateway_id             = lookup(var.internet_gateway_ids, each.key)
+# gateway_id             = module.internet_gateway.internet_gateway_ids[each.key]
+
 }
 
 # Associate public subnets to public route tables

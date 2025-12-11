@@ -39,6 +39,7 @@ EOT
 variable "internet_gateway_ids" {
   description = "Map of IGW IDs per AZ or environment"
   type        = map(string)
+  default     = {} 
 }
 
 variable "nat_gateway_ids" {

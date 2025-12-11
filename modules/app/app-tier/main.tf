@@ -16,7 +16,8 @@ module "asg_wrapper" {
       desired_capacity   = var.desired_capacity
       launch_template_id = var.launch_template_id
       subnet_ids         = var.subnet_ids
-      target_group_arn   = var.target_group_arn
+#     target_group_arn   = var.target_group_arn
+      target_group_arn   = var.app_target_group_arn[0]
     }
   }
 }
