@@ -93,20 +93,21 @@ Internet
 
 ## 📂 Repository Structure
 
+```text
 terraform-3tier-app/
 ├── environments        # dev / staging / prod
 ├── modules
 │   ├── networking      # VPC, Subnets, IGW, NAT, Routes
-│   ├── compute         # ALB, ASG, EC2, Bastion, LT
+│   ├── compute         # ALB, ASG, EC2, Bastion, Launch Templates
 │   ├── database        # RDS & subnet groups
 │   ├── security        # IAM, SGs, KMS, Secrets
 │   ├── monitoring      # CloudWatch, Alarms, SNS
 │   ├── logging         # CloudTrail, Flow Logs, S3 logs
 │   └── shared          # S3 backend & DynamoDB lock
-├── ci-cd               # CI/CD related configs
-├── docs                # Architecture & notes
+├── ci-cd               # CI/CD configurations
+├── docs                # Architecture diagrams & notes
 └── README.md
-
+```
 ---
 
 ## 🌍 Multi-Environment Ready
