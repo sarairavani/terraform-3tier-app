@@ -1,6 +1,6 @@
 # 🚀 Terraform 3-Tier AWS Architecture
 
-**Production-grade | Modular | Secure | Cost-Aware | Performance-Driven**
+**Production-grade (Design) | Modular | Secure | Cost-Aware | Performance-Driven**
 
 ⭐ *If you like well-designed infrastructure projects, give this repo a star!*
 
@@ -150,6 +150,15 @@ Some advanced production hardening steps are **intentionally documented but not 
 👉 These are **design decisions**, not missing features.
 
 ---
+⚠️ Current Status
+-----------------
+
+This project has been designed and verified with a **production mindset**.  
+All modules pass `terraform validate` and `terraform plan`.
+
+Actual deployment (`terraform apply`) to AWS is intentionally deferred and planned as a next step.
+
+* * *
 
 ## 💼 Why This Project Matters
 
@@ -172,15 +181,16 @@ This is a **portfolio-grade infrastructure design** that demonstrates:
 
 ## ⭐ Final Words
 
-**If you are a recruiter or hiring manager:**  
-This project shows how I:
-- Think about infrastructure
-- Design for scale
-- Secure cloud systems
-- Balance cost and performance
+### Why this project?
 
-**If you are an engineer:**  
-⭐ Feel free to **star**, **fork**, or **learn** from it.
+Through this project, I focused on:
+
+- Infrastructure design with scalability in mind
+- Security-first cloud architecture
+- Cost-aware decisions without sacrificing performance
+
+If you're an engineer:
+⭐ Feel free to explore, fork, or learn from it.
 
 ---
 
