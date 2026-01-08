@@ -1,0 +1,41 @@
+# Example Terraform Variables Configuration
+# Copy this file to terraform.tfvars and customize for your environment
+# NOTE: terraform.tfvars is gitignored and should never be committed
+
+############################################################
+# Environment Settings
+############################################################
+aws_region   = "ca-central-1"
+environment  = "dev"
+project_name = "terraform-3tier-app"
+
+############################################################
+# VPC and Networking
+############################################################
+vpc_cidr_block           = "10.0.0.0/16"
+availability_zones       = ["ca-central-1a", "ca-central-1b"]
+web_public_subnet_cidrs  = ["10.0.0.0/20", "10.0.16.0/20"]
+app_private_subnet_cidrs = ["10.0.128.0/20", "10.0.144.0/20"]
+db_private_subnet_cidrs  = ["10.0.160.0/20", "10.0.176.0/20"]
+
+############################################################
+# Security
+############################################################
+# IMPORTANT: Do not set passwords here in production
+# Use environment variables: export TF_VAR_db_password="your-secure-password"
+# db_password = "USE_ENV_VAR_TF_VAR_db_password"
+
+kms_key_name  = "dev-3tier-kms"
+kms_key_alias = "dev-3tier-kms"
+secret_name   = "dev-db-credentials"
+
+############################################################
+# Common Tags
+############################################################
+common_tags = {
+  Project     = "terraform-3tier-app"
+  Environment = "dev"
+  Region      = "ca-central-1"
+  ManagedBy   = "Terraform"
+  Owner       = "DevOps-Team"
+}

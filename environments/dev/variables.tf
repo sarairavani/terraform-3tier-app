@@ -3,26 +3,55 @@
 ############################################################
 variable "aws_region" {
   description = "AWS region for this environment"
+  type        = string
   default     = "ca-central-1"
+
+  validation {
+    condition     = can(regex("^[a-z]{2}-[a-z]+-[0-9]{1}$", var.aws_region))
+    error_message = "AWS region must be a valid region format (e.g., us-east-1, ca-central-1)."
+  }
 }
 
 variable "environment" {
   description = "Environment name (e.g., dev, staging, prod) used for resource naming"
+  type        = string
   default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, staging, prod."
+  }
 }
 variable "project_name" {
   description = "Name of the project, used for resource naming and tagging"
+  type        = string
   default     = "terraform-3tier-app"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.project_name))
+    error_message = "Project name must contain only lowercase letters, numbers, and hyphens."
+  }
 }
 
 variable "cidr_block" {
   description = "CIDR block for the VPC in this environment"
+  type        = string
   default     = "10.0.0.0/16"
+
+  validation {
+    condition     = can(cidrhost(var.cidr_block, 0))
+    error_message = "Must be a valid IPv4 CIDR block."
+  }
 }
 variable "availability_zones" {
   description = "List of availability zones to use"
   type        = list(string)
   default     = ["ca-central-1a", "ca-central-1b"]
+
+  validation {
+    condition     = length(var.availability_zones) >= 2
+    error_message = "At least 2 availability zones are required for high availability."
+  }
 }
 
 variable "s3_bucket_name" {
@@ -88,6 +117,11 @@ variable "admin_ip" {
 variable "vpc_cidr_block" {
   description = "VPC CIDR block"
   type        = string
+
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr_block, 0))
+    error_message = "Must be a valid IPv4 CIDR block."
+  }
 }
 
 variable "internet_gateway_ids" {
@@ -160,18 +194,22 @@ variable "kms_key_alias" {
 variable "kms_key_id" {
   description = "KMS key ARN or ID for encrypting secrets"
   type        = string
+  sensitive   = true
 }
 
 variable "db_username" {
   description = "Database username for RDS"
   type        = string
   default     = "appuser"
+  sensitive   = true
 }
 
 variable "db_password" {
-  description = "Database password for RDS"
+  description = "Database password for RDS - Should be provided via terraform.tfvars or environment variable"
   type        = string
-  default     = "ChangeMe123!"
+  sensitive   = true
+  # DO NOT set a default value for passwords in production
+  # Use: terraform.tfvars (gitignored) or TF_VAR_db_password environment variable
 }
 
 variable "secret_name" {
