@@ -14,10 +14,16 @@ on:
       - '**.tfvars'
       - '.github/workflows/terraform-ci.yml'
 
+# Restrict permissions to minimum required
+permissions:
+  contents: read
+
 jobs:
   terraform-validate:
     name: Terraform Validation
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         environment: [dev]
@@ -48,6 +54,8 @@ jobs:
   tflint:
     name: TFLint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -67,6 +75,9 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # Required for uploading SARIF results
 
     steps:
       - name: Checkout code
@@ -91,6 +102,8 @@ jobs:
   terraform-docs:
     name: Terraform Docs Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -109,6 +122,8 @@ jobs:
   summary:
     name: Validation Summary
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [terraform-validate, tflint, security-scan, terraform-docs]
     if: always()
 
