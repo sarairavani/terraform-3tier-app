@@ -20,7 +20,7 @@ resource "aws_db_instance" "this" {
 
   # Snapshot and deletion protection
   skip_final_snapshot       = var.skip_final_snapshot
-  final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.instance_identifier}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
+  final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.instance_identifier}-final-${replace(timestamp(), ":", "-")}"
   deletion_protection       = var.deletion_protection
 
   # Encryption

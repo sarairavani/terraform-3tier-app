@@ -179,6 +179,6 @@ make lint
 
 ---
 
-**Last Updated:** 2026-01-08
+**Last Updated:** 2025-01-08
 
 Review this checklist before each deployment and regularly for ongoing security maintenance.
