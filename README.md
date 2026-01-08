@@ -110,6 +110,59 @@ terraform-3tier-app/
 ```
 ---
 
+## 🚀 Quick Start
+
+### Prerequisites
+- Terraform >= 1.6.0
+- AWS CLI configured with appropriate credentials
+- (Optional) pre-commit, tflint, terraform-docs for development
+
+### Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/SaraIravani/terraform-3tier-app.git
+   cd terraform-3tier-app
+   ```
+
+2. **Copy example configuration:**
+   ```bash
+   cd environments/dev
+   cp ../../examples/terraform.tfvars.example terraform.tfvars
+   # Edit terraform.tfvars with your values
+   ```
+
+3. **Initialize Terraform:**
+   ```bash
+   make init ENV=dev
+   # Or: cd environments/dev && terraform init
+   ```
+
+4. **Validate and plan:**
+   ```bash
+   make validate ENV=dev
+   make plan ENV=dev
+   ```
+
+5. **Apply (when ready):**
+   ```bash
+   make apply ENV=dev
+   ```
+
+### Useful Commands
+
+```bash
+make fmt              # Format Terraform files
+make validate ENV=dev # Validate configuration
+make lint             # Run tflint
+make security-check   # Run security scan
+make all-checks       # Run all checks
+```
+
+For more details, see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+
 ## 🌍 Multi-Environment Ready
 
 This project supports:
@@ -149,6 +202,46 @@ Some advanced production hardening steps are **intentionally documented but not 
 - Multi-region disaster recovery strategies
 
 👉 These are **design decisions**, not missing features.
+
+---
+
+## 🎯 Best Practices Implemented
+
+This project follows industry-standard Terraform and AWS best practices:
+
+### 📋 Code Quality & Standards
+- ✅ Consistent file naming (`main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`)
+- ✅ Terraform version constraints and provider version pinning
+- ✅ Pre-commit hooks for automated code quality checks
+- ✅ TFLint configuration for best practice enforcement
+- ✅ Automated CI/CD with GitHub Actions
+- ✅ Comprehensive documentation with terraform-docs
+
+### 🔐 Security Best Practices
+- ✅ No hardcoded secrets (sensitive variables marked appropriately)
+- ✅ Least-privilege IAM policies (custom policies vs overly permissive managed policies)
+- ✅ KMS encryption with automatic key rotation enabled
+- ✅ RDS with encryption at rest, deletion protection, and automated backups
+- ✅ VPC Flow Logs for network monitoring
+- ✅ CloudTrail for audit logging
+- ✅ Security scanning with Checkov
+
+### 🏗️ Infrastructure Best Practices
+- ✅ Modular architecture with reusable components
+- ✅ Environment separation (dev/staging/prod)
+- ✅ Remote state management (S3 + DynamoDB locking ready)
+- ✅ Variable validation for input safety
+- ✅ Consistent tagging strategy
+- ✅ Multi-AZ deployment for high availability
+
+### 🛠️ Developer Experience
+- ✅ Makefile for common operations
+- ✅ Example configuration files
+- ✅ Comprehensive CONTRIBUTING.md
+- ✅ Best practices documentation
+- ✅ .editorconfig for consistent formatting
+
+For detailed best practices, see [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md)
 
 ---
 ⚠️ Current Status
