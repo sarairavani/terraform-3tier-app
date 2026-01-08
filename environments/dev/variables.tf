@@ -160,18 +160,22 @@ variable "kms_key_alias" {
 variable "kms_key_id" {
   description = "KMS key ARN or ID for encrypting secrets"
   type        = string
+  sensitive   = true
 }
 
 variable "db_username" {
   description = "Database username for RDS"
   type        = string
   default     = "appuser"
+  sensitive   = true
 }
 
 variable "db_password" {
-  description = "Database password for RDS"
+  description = "Database password for RDS - Should be provided via terraform.tfvars or environment variable"
   type        = string
-  default     = "ChangeMe123!"
+  sensitive   = true
+  # DO NOT set a default value for passwords in production
+  # Use: terraform.tfvars (gitignored) or TF_VAR_db_password environment variable
 }
 
 variable "secret_name" {
